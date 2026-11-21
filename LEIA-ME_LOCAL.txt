@@ -1,0 +1,1 @@
+Abra PulseBI_3.0_Universal.html ou clique duas vezes em Abrir_PulseBI_Local.bat para rodar no navegador.

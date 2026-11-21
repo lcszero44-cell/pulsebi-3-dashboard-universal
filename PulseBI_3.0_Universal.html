@@ -1,0 +1,2934 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PulseBI 3.0 — Plataforma Executiva Universal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-app: #060b19;
+      --bg-card: rgba(15, 23, 42, 0.8);
+      --border-card: rgba(56, 189, 248, 0.16);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-1: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.24);
+    }
+    html[data-theme="navy"] {
+      --bg-app: #060b19;
+      --bg-card: rgba(13, 21, 42, 0.86);
+      --border-card: rgba(56, 189, 248, 0.18);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-1: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.24);
+    }
+    html[data-theme="purple"] {
+      --bg-app: #0d071a;
+      --bg-card: rgba(24, 14, 46, 0.86);
+      --border-card: rgba(168, 85, 247, 0.22);
+      --text-main: #faf5ff;
+      --text-muted: #a78bfa;
+      --accent-1: #c084fc;
+      --accent-glow: rgba(192, 132, 252, 0.26);
+    }
+    html[data-theme="emerald"] {
+      --bg-app: #041410;
+      --bg-card: rgba(8, 32, 26, 0.86);
+      --border-card: rgba(16, 185, 129, 0.22);
+      --text-main: #ecfdf5;
+      --text-muted: #6ee7b7;
+      --accent-1: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+    }
+    html[data-theme="light"] {
+      --bg-app: #f1f5f9;
+      --bg-card: rgba(255, 255, 255, 0.96);
+      --border-card: rgba(148, 163, 184, 0.28);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent-1: #4f46e5;
+      --accent-glow: rgba(79, 70, 229, 0.14);
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+    .exec-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.35), 0 0 24px -16px var(--accent-glow);
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+    .hover-lift {
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.25s ease;
+    }
+    .hover-lift:hover {
+      transform: translateY(-4px) scale(1.006);
+      box-shadow: 0 20px 40px -14px rgba(0, 0, 0, 0.55), 0 0 32px -8px var(--accent-glow);
+      border-color: var(--accent-1);
+    }
+    .row-lift {
+      transition: transform 0.18s ease, background-color 0.18s ease;
+    }
+    .row-lift:hover {
+      transform: translateX(3px);
+    }
+    .btn-lift {
+      transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+    }
+    .btn-lift:hover {
+      transform: translateY(-1px);
+    }
+    .btn-lift:active {
+      transform: translateY(0px) scale(0.98);
+    }
+    .exec-input {
+      background: var(--bg-app);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+    }
+    .text-muted-exec { color: var(--text-muted); }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #ffffff !important; color: #0f172a !important; }
+      .exec-card { background: #ffffff !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; break-inside: avoid; }
+      .text-muted-exec { color: #475569 !important; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.35); border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen antialiased">
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+  <!-- Exit TV Mode Floating Button -->
+  <button id="btn-exit-tv" type="button" class="hidden fixed top-4 right-4 z-50 px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xl btn-lift">
+    Sair do Modo TV
+  </button>
+
+
+  <!-- Executive Diagnostic Report Modal -->
+  <div id="modal-report" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white text-slate-900 w-full max-w-4xl rounded-2xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="p-4 sm:px-6 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50">
+        <div>
+          <h3 class="text-base font-extrabold text-slate-900">Relatório Executivo &amp; Diagnóstico</h3>
+          <p class="text-xs text-slate-500">Análise automática com pontos de atenção, dores e gráficos embutidos.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-copy-whatsapp" type="button" class="btn-lift px-3.5 py-2 rounded-xl text-xs font-bold bg-green-600 hover:bg-green-700 text-white">
+            📲 Copiar Resumo p/ WhatsApp
+          </button>
+          <button id="btn-open-whatsapp" type="button" class="btn-lift px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-slate-950">
+            🚀 Abrir no WhatsApp
+          </button>
+          <button id="btn-dl-whatsapp-card" type="button" class="btn-lift px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-500 hover:bg-sky-600 text-slate-950">
+            🖼️ Baixar Card Visual (PNG)
+          </button>
+          <button id="btn-dl-report-html" type="button" class="btn-lift px-3.5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white">
+            Baixar Relatório Completo (.html)
+          </button>
+          <button id="btn-print-report" type="button" class="btn-lift px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white">
+            Salvar PDF / Imprimir
+          </button>
+          <button id="btn-close-report" type="button" class="p-2 rounded-xl hover:bg-slate-200 text-slate-500 font-bold">✕</button>
+        </div>
+      </div>
+      <div id="report-preview-body" class="p-5 sm:p-8 overflow-y-auto space-y-6 bg-white"></div>
+    </div>
+  </div>
+
+  <!-- Brand & Theme Modal -->
+  <div id="modal-brand" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="exec-card w-full max-w-md rounded-2xl p-6 space-y-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold">Personalizar Marca &amp; Tema</h3>
+          <p class="text-xs text-muted-exec">Deixe o dashboard com a cara da sua empresa ou cliente.</p>
+        </div>
+        <button id="btn-close-brand" type="button" class="p-1.5 rounded-lg hover:bg-white/10 text-muted-exec">✕</button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label for="input-brand-name" class="block text-xs font-semibold uppercase tracking-wider text-muted-exec mb-1.5">Nome da Empresa / Painel</label>
+          <input id="input-brand-name" type="text" value="PulseBI" class="exec-input w-full rounded-xl px-3.5 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-muted-exec mb-1.5">Logo da Empresa (Opcional)</label>
+          <div class="flex items-center gap-3">
+            <input id="input-brand-logo" type="file" accept="image/*" class="hidden" />
+            <button id="btn-upload-logo" type="button" class="btn-lift px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white">
+              Escolher Imagem
+            </button>
+            <button id="btn-remove-logo" type="button" class="btn-lift px-3 py-2 rounded-xl text-xs font-semibold border border-slate-600/40 hover:bg-white/5 text-muted-exec">
+              Remover Logo
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-muted-exec mb-2">Paleta Executiva</label>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button type="button" data-theme-pick="navy" class="btn-lift theme-pick-btn flex items-center gap-2.5 p-2.5 rounded-xl border border-sky-500/40 bg-[#060b19] text-white text-xs font-semibold">
+              <span class="w-4 h-4 rounded-full bg-sky-400 shrink-0"></span> Executivo Navy
+            </button>
+            <button type="button" data-theme-pick="purple" class="btn-lift theme-pick-btn flex items-center gap-2.5 p-2.5 rounded-xl border border-purple-500/40 bg-[#0d071a] text-white text-xs font-semibold">
+              <span class="w-4 h-4 rounded-full bg-purple-400 shrink-0"></span> Roxo Neon
+            </button>
+            <button type="button" data-theme-pick="emerald" class="btn-lift theme-pick-btn flex items-center gap-2.5 p-2.5 rounded-xl border border-emerald-500/40 bg-[#041410] text-white text-xs font-semibold">
+              <span class="w-4 h-4 rounded-full bg-emerald-400 shrink-0"></span> Esmeralda BI
+            </button>
+            <button type="button" data-theme-pick="light" class="btn-lift theme-pick-btn flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-xs font-semibold">
+              <span class="w-4 h-4 rounded-full bg-indigo-600 shrink-0"></span> Claro Corporativo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button id="btn-save-brand" type="button" class="btn-lift px-5 py-2 rounded-xl text-xs font-semibold bg-sky-500 hover:bg-sky-600 text-slate-950">
+          Aplicar Personalização
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Row Modal -->
+  <div id="modal-row" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="exec-card w-full max-w-lg rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 id="modal-row-title" class="text-base font-bold">Novo Lançamento</h3>
+          <p class="text-xs text-muted-exec">Os gráficos, metas e insights atualizam na hora.</p>
+        </div>
+        <button id="btn-close-row" type="button" class="p-1.5 rounded-lg hover:bg-white/10 text-muted-exec">✕</button>
+      </div>
+      <div id="modal-row-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button id="btn-cancel-row" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 hover:bg-white/10">Cancelar</button>
+        <button id="btn-save-row" type="button" class="btn-lift px-5 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-slate-950">Salvar Registro</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex min-h-screen">
+
+    <!-- Collapsible Sidebar (Desktop) -->
+    <aside id="app-sidebar" class="no-print hidden lg:flex flex-col w-60 shrink-0 exec-card border-y-0 border-l-0 transition-all duration-200 p-4 justify-between">
+      <div class="space-y-6">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div id="brand-logo-box" class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white font-extrabold shadow-md shrink-0 overflow-hidden">
+              <span id="brand-logo-letter">P</span>
+              <img id="brand-logo-img" alt="Logo" class="hidden w-full h-full object-cover" />
+            </div>
+            <div class="min-w-0 sidebar-label">
+              <div id="brand-title-text" class="font-bold text-sm tracking-tight truncate">PulseBI</div>
+              <div class="text-[10px] text-sky-400 font-semibold uppercase tracking-wider">Executivo 3.0</div>
+            </div>
+          </div>
+          <button id="btn-toggle-sidebar" type="button" title="Recolher menu" class="p-1.5 rounded-lg hover:bg-white/10 text-muted-exec">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+        </div>
+
+        <nav class="space-y-1.5">
+          <button id="side-btn-dashboard" type="button" class="btn-lift w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold bg-sky-500 text-slate-950 shadow-sm">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span class="sidebar-label">Visão Geral</span>
+          </button>
+          <button id="side-btn-import" type="button" class="btn-lift w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-muted-exec hover:bg-white/10">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+            <span class="sidebar-label">Importar / Colar</span>
+          </button>
+          <button id="side-btn-brand" type="button" class="btn-lift w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-muted-exec hover:bg-white/10">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+            <span class="sidebar-label">Marca &amp; Cores</span>
+          </button>
+          <button id="side-btn-tv" type="button" class="btn-lift w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-muted-exec hover:bg-white/10">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <span class="sidebar-label">Modo TV / Tela Cheia</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="sidebar-label p-3 rounded-xl border border-white/10 bg-black/20 text-[11px] text-muted-exec space-y-1">
+        <div class="font-semibold text-sky-400">Dica rápida</div>
+        <p>Dê <strong>duplo clique</strong> em qualquer célula da tabela para editar o número na hora.</p>
+      </div>
+    </aside>
+
+    <!-- Main Content Column -->
+    <div class="flex-1 min-w-0 flex flex-col">
+
+      <!-- Top Header -->
+      <header id="app-header" class="no-print sticky top-0 z-30 exec-card border-x-0 border-t-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="lg:hidden font-bold text-base tracking-tight">PulseBI</span>
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-400/30">
+                <span id="live-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Ao vivo
+              </span>
+              <p id="dataset-subtitle" class="text-xs text-muted-exec truncate">Carregando...</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <nav class="flex lg:hidden bg-black/20 p-1 rounded-xl border border-white/10">
+              <button id="tab-btn-dashboard" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all bg-sky-500 text-slate-950 shadow-sm">
+                Dashboard
+              </button>
+              <button id="tab-btn-import" type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all text-muted-exec">
+                Importar
+              </button>
+            </nav>
+
+            <button id="btn-live-toggle" type="button" title="Atualização automática a cada 10s" class="btn-lift hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20">
+              <span id="live-status-text">Auto: ON</span>
+            </button>
+
+            <button id="btn-tv-mode" type="button" title="Modo TV / Apresentação" class="btn-lift hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-white/10 hover:bg-white/10">
+              <span>Modo TV</span>
+            </button>
+
+            <button id="btn-open-brand" type="button" title="Personalizar Marca e Cores" class="btn-lift inline-flex lg:hidden items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-white/10 hover:bg-white/10">
+              <span>Marca</span>
+            </button>
+
+            <button id="btn-download-summary" type="button" title="Baixar Resumo Executivo Mastigado" class="btn-lift hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30">
+              <span>Resumo</span>
+            </button>
+
+            <button id="btn-print" type="button" title="Imprimir ou Salvar PDF" class="btn-lift hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-white/10 hover:bg-white/10">
+              <span>PDF</span>
+            </button>
+
+            <button id="btn-theme" type="button" title="Alternar Claro/Escuro" class="btn-lift p-2 rounded-xl border border-white/10 hover:bg-white/10">
+              <svg id="icon-sun" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+              <svg id="icon-moon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+
+        <!-- ==================== VIEW: DASHBOARD ==================== -->
+        <section id="view-dashboard" class="space-y-5">
+
+          <!-- Global Controls & Slicers -->
+          <div id="filters-panel" class="no-print exec-card rounded-2xl p-4 space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+              <div>
+                <label for="select-metric" class="block text-[11px] font-semibold uppercase tracking-wider text-muted-exec mb-1">Métrica Principal</label>
+                <select id="select-metric" class="exec-input w-full rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"></select>
+              </div>
+              <div>
+                <label for="select-category-col" class="block text-[11px] font-semibold uppercase tracking-wider text-muted-exec mb-1">Agrupar / Filtrar por</label>
+                <select id="select-category-col" class="exec-input w-full rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"></select>
+              </div>
+              <div>
+                <label for="select-category-val" class="block text-[11px] font-semibold uppercase tracking-wider text-muted-exec mb-1">Valor da Categoria</label>
+                <select id="select-category-val" class="exec-input w-full rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <option value="__ALL__">Todos</option>
+                </select>
+              </div>
+              <div>
+                <label for="input-search" class="block text-[11px] font-semibold uppercase tracking-wider text-muted-exec mb-1">Busca Rápida</label>
+                <input id="input-search" type="text" placeholder="Filtrar qualquer texto..." class="exec-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+              </div>
+              <div class="flex gap-2">
+                <button id="btn-reset-filters" type="button" class="btn-lift w-full px-3 py-2 rounded-xl text-sm font-semibold border border-white/15 hover:bg-white/10">
+                  Limpar Filtros
+                </button>
+              </div>
+            </div>
+
+            <!-- Date Range (De / Até) & Aggregation Mode (Soma vs. Média) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-white/10 items-end">
+              <div>
+                <label for="select-agg-mode" class="block text-[11px] font-semibold uppercase tracking-wider text-muted-exec mb-1">Cálculo dos Gráficos (Soma / Média)</label>
+                <select id="select-agg-mode" class="exec-input w-full rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <option value="sum">Soma Total (Volume / Faturamento)</option>
+                  <option value="avg">Média por Registro (Ticket / Tempo / Nota)</option>
+                </select>
+              </div>
+              <div>
+                <label for="input-date-from" class="block text-[11px] font-semibold uppercase tracking-wider text-muted-exec mb-1">Período: Data Inicial (De)</label>
+                <input id="input-date-from" type="date" class="exec-input w-full rounded-xl px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-500" />
+              </div>
+              <div>
+                <label for="input-date-to" class="block text-[11px] font-semibold uppercase tracking-wider text-muted-exec mb-1">Período: Data Final (Até)</label>
+                <input id="input-date-to" type="date" class="exec-input w-full rounded-xl px-3 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-500" />
+              </div>
+            </div>
+
+            <!-- Clickable Slicer Pills -->
+            <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-white/10">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-muted-exec mr-1">Filtros Rápidos:</span>
+              <div id="slicer-pills" class="flex flex-wrap gap-1.5"></div>
+            </div>
+          </div>
+
+          <!-- Executive Insights Strip -->
+          <div class="exec-card hover-lift rounded-2xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="flex items-start sm:items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-400/30 text-sky-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <div>
+                <div class="text-[11px] font-bold uppercase tracking-wider text-sky-400">Insights Automáticos</div>
+                <p id="insights-text" class="text-xs sm:text-sm mt-0.5 leading-relaxed">Analisando dados...</p>
+              </div>
+            </div>
+            <div id="sync-badge" class="text-[11px] text-muted-exec shrink-0">Atualizado agora</div>
+          </div>
+
+          <!-- KPI Cards with Sparklines & Hover Lift -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="exec-card hover-lift rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2">
+                  <span id="kpi-1-label" class="text-xs font-semibold uppercase tracking-wider text-muted-exec truncate">Total Geral</span>
+                  <span id="kpi-1-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-400">+0%</span>
+                </div>
+                <div id="kpi-1-val" class="mt-2.5 text-2xl sm:text-3xl font-extrabold tracking-tight">—</div>
+                <p id="kpi-1-sub" class="mt-1 text-xs text-muted-exec">Soma dos registros ativos</p>
+              </div>
+              <div class="relative h-10 mt-3"><canvas id="spark-1"></canvas></div>
+            </div>
+
+            <div class="exec-card hover-lift rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2">
+                  <span id="kpi-2-label" class="text-xs font-semibold uppercase tracking-wider text-muted-exec truncate">Média por Registro</span>
+                  <span id="kpi-2-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-400">Ticket</span>
+                </div>
+                <div id="kpi-2-val" class="mt-2.5 text-2xl sm:text-3xl font-extrabold tracking-tight">—</div>
+                <p id="kpi-2-sub" class="mt-1 text-xs text-muted-exec">Valor médio por linha</p>
+              </div>
+              <div class="relative h-10 mt-3"><canvas id="spark-2"></canvas></div>
+            </div>
+
+            <div class="exec-card hover-lift rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-semibold uppercase tracking-wider text-muted-exec">Registros Ativos</span>
+                  <span id="kpi-3-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-400">100%</span>
+                </div>
+                <div id="kpi-3-val" class="mt-2.5 text-2xl sm:text-3xl font-extrabold tracking-tight">—</div>
+                <p id="kpi-3-sub" class="mt-1 text-xs text-muted-exec">Grupos identificados</p>
+              </div>
+              <div class="relative h-10 mt-3"><canvas id="spark-3"></canvas></div>
+            </div>
+
+            <div class="exec-card hover-lift rounded-2xl p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-semibold uppercase tracking-wider text-muted-exec">Líder do Segmento</span>
+                  <span id="kpi-4-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-violet-500/15 text-violet-400">Top 1</span>
+                </div>
+                <div id="kpi-4-val" class="mt-2.5 text-xl sm:text-2xl font-extrabold tracking-tight truncate">—</div>
+                <p id="kpi-4-sub" class="mt-1 text-xs text-muted-exec truncate">Maior participação</p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+                <span class="text-muted-exec">Pico único:</span>
+                <span id="kpi-4-peak" class="font-bold">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row 1: Timeline (Switchable) + Meta Gauge -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div class="exec-card hover-lift lg:col-span-2 rounded-2xl p-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <div>
+                  <h2 class="text-sm font-bold">Evolução ao Longo do Tempo</h2>
+                  <p id="chart-line-sub" class="text-xs text-muted-exec">Tendência da métrica selecionada</p>
+                </div>
+                <div class="no-print flex items-center gap-1.5">
+                  <div class="flex bg-black/25 p-0.5 rounded-lg border border-white/10 text-[11px] font-semibold">
+                    <button type="button" data-line-mode="area" class="line-mode-btn px-2 py-1 rounded-md bg-sky-500 text-slate-950">Ondulado</button>
+                    <button type="button" data-line-mode="line" class="line-mode-btn px-2 py-1 rounded-md text-muted-exec">Reto</button>
+                    <button type="button" data-line-mode="bar" class="line-mode-btn px-2 py-1 rounded-md text-muted-exec">Colunas</button>
+                  </div>
+                  <button id="btn-dl-line" type="button" title="Baixar gráfico em PNG" class="btn-lift px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-white/15 hover:bg-white/10">PNG</button>
+                </div>
+              </div>
+              <div class="relative h-72">
+                <canvas id="chart-line"></canvas>
+              </div>
+            </div>
+
+            <!-- Goal Gauge Card -->
+            <div class="exec-card hover-lift rounded-2xl p-5 flex flex-col justify-between">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h2 class="text-sm font-bold">Meta vs. Realizado</h2>
+                  <p class="text-xs text-muted-exec">Acompanhamento de objetivo</p>
+                </div>
+                <div class="no-print flex items-center gap-1.5">
+                  <label for="input-goal" class="text-[11px] text-muted-exec">Meta:</label>
+                  <input id="input-goal" type="number" step="any" class="exec-input w-20 rounded-lg px-2 py-1 text-xs font-semibold text-right focus:outline-none focus:ring-2 focus:ring-sky-500" />
+                  <button id="btn-dl-gauge" type="button" title="Baixar gráfico em PNG" class="btn-lift px-2 py-1 rounded-lg text-[11px] font-semibold border border-white/15 hover:bg-white/10">PNG</button>
+                </div>
+              </div>
+              <div class="relative h-48 flex items-center justify-center">
+                <canvas id="chart-gauge"></canvas>
+                <div class="absolute bottom-4 text-center pointer-events-none">
+                  <div id="gauge-pct-label" class="text-3xl font-extrabold tracking-tight">0%</div>
+                  <div class="text-[11px] text-muted-exec uppercase tracking-wider font-semibold">da meta atingida</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-3 gap-2 pt-3 border-t border-white/10 text-xs">
+                <div>
+                  <span class="text-muted-exec block">Realizado</span>
+                  <span id="gauge-realized" class="font-bold">—</span>
+                </div>
+                <div class="text-center border-x border-white/10 px-1">
+                  <span class="text-muted-exec block" title="Meta mensal dividida por 4 semanas">Meta / Semana</span>
+                  <span id="gauge-weekly" class="font-bold text-sky-400">—</span>
+                </div>
+                <div class="text-right">
+                  <span id="gauge-diff-label" class="text-muted-exec block">Falta</span>
+                  <span id="gauge-diff-val" class="font-bold">—</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row 2: Ranking Bar + Animated Hover Doughnut with Side Data List -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div class="exec-card hover-lift rounded-2xl p-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <div>
+                  <h2 class="text-sm font-bold">Ranking Top 10 <span class="text-[11px] font-normal text-sky-400 ml-1">(clique na barra para filtrar)</span></h2>
+                  <p id="chart-bar-sub" class="text-xs text-muted-exec">Maiores resultados agrupados</p>
+                </div>
+                <button id="btn-dl-bar" type="button" title="Baixar gráfico em PNG" class="no-print btn-lift px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-white/15 hover:bg-white/10">PNG</button>
+              </div>
+              <div class="relative h-72">
+                <canvas id="chart-bar"></canvas>
+              </div>
+            </div>
+
+            <div class="exec-card hover-lift rounded-2xl p-5 flex flex-col justify-between">
+              <div class="flex items-start justify-between gap-2 mb-4">
+                <div>
+                  <h2 class="text-sm font-bold">Participação (%) <span class="text-[11px] font-normal text-sky-400 ml-1">(clique para filtrar)</span></h2>
+                  <p id="chart-doughnut-sub" class="text-xs text-muted-exec">Distribuição por categoria</p>
+                </div>
+                <button id="btn-dl-doughnut" type="button" title="Baixar gráfico em PNG" class="no-print btn-lift px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-white/15 hover:bg-white/10">PNG</button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center flex-1">
+                <div class="relative h-60">
+                  <canvas id="chart-doughnut"></canvas>
+                </div>
+                <div id="doughnut-legend-list" class="space-y-2.5 max-h-60 overflow-y-auto pr-1"></div>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Charts Row 3: Period Comparison (Current vs Previous) -->
+          <div class="exec-card hover-lift rounded-2xl p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 class="text-sm font-bold">Comparativo de Períodos (Atual vs. Anterior)</h2>
+                <p id="chart-compare-sub" class="text-xs text-muted-exec">Comparação lado a lado por categoria</p>
+              </div>
+              <div class="no-print flex items-center gap-2">
+                <select id="select-compare-mode" class="exec-input rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500">
+                  <option value="half">Metade do Período (Atual vs. Anterior)</option>
+                  <option value="yoy">Mês Atual vs. Mesmo Mês Ano Passado (YoY)</option>
+                  <option value="7d">Últimos 7 dias vs. 7 anteriores</option>
+                  <option value="30d">Últimos 30 dias vs. 30 anteriores</option>
+                </select>
+                <button id="btn-dl-compare" type="button" title="Baixar gráfico em PNG" class="btn-lift px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-white/15 hover:bg-white/10">PNG</button>
+              </div>
+            </div>
+            <div class="relative h-64">
+              <canvas id="chart-compare"></canvas>
+            </div>
+          </div>
+
+          <!-- Interactive Editable Table -->
+          <div id="table-section" class="exec-card rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-white/10 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-bold">Planilha Interativa <span class="text-[11px] font-normal text-emerald-400 ml-1">(duplo clique na célula para editar)</span></h2>
+                <p id="table-count-label" class="text-xs text-muted-exec">0 registros</p>
+              </div>
+              <div class="no-print flex flex-wrap items-center gap-2">
+                <button id="btn-new-row" type="button" class="btn-lift inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-slate-950">
+                  <span>+ Novo Lançamento</span>
+                </button>
+                <button id="btn-export-xlsx" type="button" class="btn-lift inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-400/30">
+                  <span>Exportar Excel (.xlsx)</span>
+                </button>
+                <button id="btn-export-csv" type="button" class="btn-lift inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-sky-500/15 hover:bg-sky-500/25 text-sky-400 border border-sky-400/30">
+                  <span>Exportar CSV Filtrado</span>
+                </button>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead id="table-head" class="bg-black/20 text-xs uppercase text-muted-exec"></thead>
+                <tbody id="table-body" class="divide-y divide-white/10"></tbody>
+              </table>
+            </div>
+            <div class="no-print p-4 border-t border-white/10 flex items-center justify-between text-xs text-muted-exec">
+              <span id="page-info">Página 1 de 1</span>
+              <div class="flex gap-2">
+                <button id="btn-prev-page" type="button" class="btn-lift px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/10 disabled:opacity-40 font-medium">Anterior</button>
+                <button id="btn-next-page" type="button" class="btn-lift px-3 py-1.5 rounded-lg border border-white/15 hover:bg-white/10 disabled:opacity-40 font-medium">Próxima</button>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==================== VIEW: IMPORT / PASTE ==================== -->
+        <section id="view-import" class="hidden space-y-6">
+
+          <div class="exec-card rounded-2xl p-6">
+            <h1 class="text-lg font-bold">Importar Planilhas, Colar Dados ou Conectar Google Sheets</h1>
+            <p class="text-sm text-muted-exec mt-1">
+              Envie um ou vários arquivos (<code class="text-sky-400">.xlsx</code>, <code class="text-sky-400">.csv</code>, <code class="text-sky-400">.json</code>) para consolidar tudo junto, cole direto do Excel/Google Sheets ou conecte uma pasta do seu PC.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-muted-exec mb-2">1. Enviar Um ou Vários Arquivos (.xlsx, .csv, .json)</label>
+                <div id="drop-zone" class="border-2 border-dashed border-slate-500/40 hover:border-sky-400 rounded-2xl p-8 text-center cursor-pointer transition-colors bg-black/15">
+                  <input id="file-input" type="file" multiple accept=".xlsx,.xls,.csv,.txt,.json" class="hidden" />
+                  <div class="w-12 h-12 rounded-2xl bg-sky-500/15 text-sky-400 flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                  </div>
+                  <p class="text-sm font-semibold">Arraste uma ou várias planilhas aqui</p>
+                  <p class="text-xs text-muted-exec mt-1">Se enviar várias, o sistema junta tudo automaticamente</p>
+                </div>
+
+                <!-- Google Sheets CSV URL -->
+                <div class="mt-4">
+                  <label for="input-gsheet-url" class="block text-xs font-semibold uppercase tracking-wider text-muted-exec mb-1.5">Ou Link CSV do Google Sheets (Planilha Publicada)</label>
+                  <div class="flex gap-2">
+                    <input id="input-gsheet-url" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv" class="exec-input flex-1 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500" />
+                    <button id="btn-load-gsheet" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shrink-0">Conectar</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col">
+                <label for="paste-area" class="block text-xs font-semibold uppercase tracking-wider text-muted-exec mb-2">2. Ou Cole Aqui (Ctrl+C no Excel / Sheets e Ctrl+V)</label>
+                <textarea id="paste-area" rows="8" placeholder="Exemplo:&#10;Data	Vendedor	Categoria	Valor&#10;01/11/2026	Ana	Eletrônicos	1450,00&#10;02/11/2026	Carlos	Acessórios	320,50" class="exec-input w-full flex-1 rounded-2xl p-3.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-sky-500"></textarea>
+                <div class="mt-3 flex justify-end">
+                  <button id="btn-process-paste" type="button" class="btn-lift px-5 py-2.5 rounded-xl text-sm font-semibold bg-sky-500 hover:bg-sky-600 text-slate-950 shadow-sm">
+                    Gerar Dashboard com Dados Colados
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-white/10">
+              <p class="text-xs font-semibold uppercase tracking-wider text-muted-exec mb-3">Modelos prontos por segmento &amp; automação local:</p>
+              <div class="flex flex-wrap gap-3">
+                <button id="btn-sample-bebidas" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-bold bg-rose-500/20 border border-rose-400/40 text-rose-300 hover:bg-rose-500/30">🥤 Comercial &amp; Bebidas (Coca-Cola)</button>
+                <button id="btn-sample-picking" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 hover:bg-white/10">Separação &amp; Picking</button>
+                <button id="btn-sample-logistica" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 hover:bg-white/10">Logística &amp; Entregas</button>
+                <button id="btn-sample-estoque" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 hover:bg-white/10">Estoque &amp; Produtos</button>
+                <button id="btn-sample-vendas" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 hover:bg-white/10">Comércio &amp; Vendas</button>
+                <button id="btn-sample-financeiro" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 hover:bg-white/10">Financeiro &amp; Fluxo de Caixa</button>
+                <button id="btn-sample-clinica" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 hover:bg-white/10">Clínica &amp; Atendimentos</button>
+                <button id="btn-sample-academia" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 hover:bg-white/10">🏋️ Academias &amp; Fitness</button>
+                <button id="btn-sample-rh" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-white/15 hover:bg-white/10">RH &amp; Equipes</button>
+                <button id="btn-watch-folder" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 hover:bg-indigo-500/30">Vigiar Pasta do PC (Auto)</button>
+                <button id="btn-clear-memory" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold border border-rose-500/40 text-rose-400 hover:bg-rose-500/15">Limpar Memória Salva</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column Type Inspector -->
+          <div class="exec-card rounded-2xl p-6">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div>
+                <h2 class="text-base font-bold">Colunas Detectadas Automaticamente</h2>
+                <p class="text-xs text-muted-exec">Ajuste o tipo de alguma coluna se necessário e clique em Aplicar.</p>
+              </div>
+              <button id="btn-apply-schema" type="button" class="btn-lift px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-slate-950">
+                Aplicar e Ver Dashboard
+              </button>
+            </div>
+            <div id="schema-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+          </div>
+
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // ==================== SAMPLE DATASETS ====================
+    const SAMPLES = {
+      bebidas: {
+        name: '🥤 Comercial & Bebidas (Coca-Cola)',
+        goal: 160000,
+        rows: [
+          { Data: '04/11/2025', Vendedor: 'Gabriel Silva', Cliente: 'Supermercado Bretas', Produto: 'Coca-Cola Original 2L (Fardo)', Rota: 'Uberlândia Centro', Faturamento_Bruto: 7920.00, Caixas: 110, Status_Pagamento: 'Em Dia' },
+          { Data: '10/11/2025', Vendedor: 'Mariana Costa', Cliente: 'Atacadão Triângulo', Produto: 'Coca-Cola Sem Açúcar Lata 350ml', Rota: 'Distrito Industrial', Faturamento_Bruto: 11840.00, Caixas: 185, Status_Pagamento: 'Em Dia' },
+          { Data: '18/11/2025', Vendedor: 'Carlos Eduardo', Cliente: 'Padaria Pão Dourado', Produto: 'Fanta Laranja 2L', Rota: 'Santa Mônica', Faturamento_Bruto: 3120.00, Caixas: 48, Status_Pagamento: 'Em Dia' },
+          { Data: '25/11/2025', Vendedor: 'Fernanda Lima', Cliente: 'Restaurante Sabor Mineiro', Produto: 'Sprite Lemon Fresh 510ml', Rota: 'Tibery', Faturamento_Bruto: 4095.00, Caixas: 65, Status_Pagamento: 'Em Dia' },
+          { Data: '02/11/2026', Vendedor: 'Gabriel Silva', Cliente: 'Supermercado Bretas', Produto: 'Coca-Cola Original 2L (Fardo)', Rota: 'Uberlândia Centro', Faturamento_Bruto: 10875.00, Caixas: 145, Status_Pagamento: 'Em Dia' },
+          { Data: '03/11/2026', Vendedor: 'Mariana Costa', Cliente: 'Atacadão Triângulo', Produto: 'Coca-Cola Sem Açúcar Lata 350ml', Rota: 'Distrito Industrial', Faturamento_Bruto: 15640.00, Caixas: 230, Status_Pagamento: 'Em Dia' },
+          { Data: '05/11/2026', Vendedor: 'Carlos Eduardo', Cliente: 'Empório Central', Produto: 'Schweppes Citrus Lata', Rota: 'Uberlândia Centro', Faturamento_Bruto: 4320.00, Caixas: 60, Status_Pagamento: 'Em Dia' },
+          { Data: '06/11/2026', Vendedor: 'Gabriel Silva', Cliente: 'Mercearia São José', Produto: 'Coca-Cola Retornável 2L', Rota: 'Bairro Mansour', Faturamento_Bruto: 0.00, Caixas: 0, Status_Pagamento: 'Atrasado' },
+          { Data: '08/11/2026', Vendedor: 'Fernanda Lima', Cliente: 'Restaurante Sabor Mineiro', Produto: 'Coca-Cola KS 290ml', Rota: 'Tibery', Faturamento_Bruto: 6840.00, Caixas: 95, Status_Pagamento: 'Em Dia' },
+          { Data: '10/11/2026', Vendedor: 'Mariana Costa', Cliente: 'Rede Super Maxi', Produto: 'Coca-Cola Original 2L (Fardo)', Rota: 'Santa Mônica', Faturamento_Bruto: 23250.00, Caixas: 310, Status_Pagamento: 'Em Dia' },
+          { Data: '11/11/2026', Vendedor: 'Carlos Eduardo', Cliente: 'Bar e Conveniência 24h', Produto: 'Monster Energy Ultra', Rota: 'Umuarama', Faturamento_Bruto: 0.00, Caixas: 0, Status_Pagamento: 'Inadimplente' },
+          { Data: '12/11/2026', Vendedor: 'Gabriel Silva', Cliente: 'Hipermercado Praia', Produto: 'Del Valle Néctar 1L', Rota: 'Uberlândia Centro', Faturamento_Bruto: 9750.00, Caixas: 130, Status_Pagamento: 'Em Dia' },
+          { Data: '14/11/2026', Vendedor: 'Fernanda Lima', Cliente: 'Churrascaria Tropeiro', Produto: 'Água Crystal c/ Gás 500ml', Rota: 'Tibery', Faturamento_Bruto: 5175.00, Caixas: 115, Status_Pagamento: 'Em Dia' },
+          { Data: '15/11/2026', Vendedor: 'Mariana Costa', Cliente: 'Distribuidora União', Produto: 'Coca-Cola Original Lata 350ml', Rota: 'Distrito Industrial', Faturamento_Bruto: 19600.00, Caixas: 280, Status_Pagamento: 'Atrasado' },
+          { Data: '16/11/2026', Vendedor: 'Gabriel Silva', Cliente: 'Supermercado Leal', Produto: 'Coca-Cola Sem Açúcar 2L', Rota: 'Bairro Mansour', Faturamento_Bruto: 13125.00, Caixas: 175, Status_Pagamento: 'Em Dia' }
+        ]
+      },
+      picking: {
+        name: 'Separação & Picking',
+        goal: 4500,
+        rows: [
+          { Data: '03/11/2026', Operador: 'Marcos Vinicius', Turno: 'Manhã', Galpao: 'CD-01 Bebidas', Caixas_Separadas: 520, Pedidos: 18, Erros: 0 },
+          { Data: '04/11/2026', Operador: 'Juliana Rocha', Turno: 'Manhã', Galpao: 'CD-01 Bebidas', Caixas_Separadas: 490, Pedidos: 16, Erros: 1 },
+          { Data: '05/11/2026', Operador: 'Diego Martins', Turno: 'Tarde', Galpao: 'CD-02 Secos', Caixas_Separadas: 430, Pedidos: 14, Erros: 0 },
+          { Data: '06/11/2026', Operador: 'Marcos Vinicius', Turno: 'Manhã', Galpao: 'CD-01 Bebidas', Caixas_Separadas: 610, Pedidos: 22, Erros: 0 },
+          { Data: '08/11/2026', Operador: ' Renata Gomes', Turno: 'Noite', Galpao: 'CD-03 Frios', Caixas_Separadas: 380, Pedidos: 12, Erros: 2 },
+          { Data: '10/11/2026', Operador: 'Juliana Rocha', Turno: 'Manhã', Galpao: 'CD-01 Bebidas', Caixas_Separadas: 545, Pedidos: 19, Erros: 0 },
+          { Data: '12/11/2026', Operador: 'Diego Martins', Turno: 'Tarde', Galpao: 'CD-02 Secos', Caixas_Separadas: 470, Pedidos: 15, Erros: 0 },
+          { Data: '15/11/2026', Operador: 'Marcos Vinicius', Turno: 'Manhã', Galpao: 'CD-01 Bebidas', Caixas_Separadas: 640, Pedidos: 24, Erros: 0 }
+        ]
+      },
+      rh: {
+        name: 'RH & Equipes',
+        goal: 120000,
+        rows: [
+          { Data: '01/11/2026', Colaborador: 'Gabriel Silva', Setor: 'Comercial Externo', Cargo: 'Executivo de Vendas', Folha_Total: 8400.00, Horas_Treinamento: 16 },
+          { Data: '01/11/2026', Colaborador: 'Mariana Costa', Setor: 'Key Account', Cargo: 'Gestora de Contas', Folha_Total: 11200.00, Horas_Treinamento: 20 },
+          { Data: '01/11/2026', Colaborador: 'Marcos Vinicius', Setor: 'Logística & Picking', Cargo: 'Líder de CD', Folha_Total: 5600.00, Horas_Treinamento: 12 },
+          { Data: '01/11/2026', Colaborador: 'Ana Beatriz', Setor: 'Financeiro', Cargo: 'Analista Sênior', Folha_Total: 7800.00, Horas_Treinamento: 10 },
+          { Data: '01/11/2026', Colaborador: 'Carlos Eduardo', Setor: 'Comercial Externo', Cargo: 'Promotor / Vendedor', Folha_Total: 6200.00, Horas_Treinamento: 14 },
+          { Data: '01/11/2026', Colaborador: 'Roberto Almeida', Setor: 'Frota & Distribuição', Cargo: 'Motorista Entregador', Folha_Total: 5400.00, Horas_Treinamento: 8 }
+        ]
+      },
+      vendas: {
+        name: 'Comércio & Vendas',
+        goal: 55000,
+        rows: [
+          { Data: '02/10/2026', Vendedor: 'Mariana Costa', Categoria: 'Eletrônicos', Cidade: 'Uberlândia', Faturamento: 4850.00, Unidades: 5 },
+          { Data: '05/10/2026', Vendedor: 'Lucas Mendes', Categoria: 'Acessórios', Cidade: 'Uberaba', Faturamento: 1290.50, Unidades: 14 },
+          { Data: '09/10/2026', Vendedor: 'Rafael Souza', Categoria: 'Informática', Cidade: 'Uberlândia', Faturamento: 6400.00, Unidades: 3 },
+          { Data: '14/10/2026', Vendedor: 'Mariana Costa', Categoria: 'Informática', Cidade: 'Araguari', Faturamento: 3920.00, Unidades: 2 },
+          { Data: '18/10/2026', Vendedor: 'Camila Alves', Categoria: 'Eletrônicos', Cidade: 'Uberlândia', Faturamento: 5180.00, Unidades: 6 },
+          { Data: '22/10/2026', Vendedor: 'Lucas Mendes', Categoria: 'Periféricos', Cidade: 'Patos de Minas', Faturamento: 1840.00, Unidades: 9 },
+          { Data: '28/10/2026', Vendedor: 'Rafael Souza', Categoria: 'Acessórios', Cidade: 'Uberlândia', Faturamento: 950.00, Unidades: 11 },
+          { Data: '01/11/2026', Vendedor: 'Camila Alves', Categoria: 'Informática', Cidade: 'Uberlândia', Faturamento: 7850.00, Unidades: 4 },
+          { Data: '04/11/2026', Vendedor: 'Mariana Costa', Categoria: 'Periféricos', Cidade: 'Uberaba', Faturamento: 2640.00, Unidades: 12 },
+          { Data: '07/11/2026', Vendedor: 'Lucas Mendes', Categoria: 'Eletrônicos', Cidade: 'Uberlândia', Faturamento: 6120.00, Unidades: 7 },
+          { Data: '10/11/2026', Vendedor: 'Rafael Souza', Categoria: 'Informática', Cidade: 'Araguari', Faturamento: 4300.00, Unidades: 2 },
+          { Data: '12/11/2026', Vendedor: 'Camila Alves', Categoria: 'Acessórios', Cidade: 'Uberlândia', Faturamento: 1580.00, Unidades: 18 }
+        ]
+      },
+      academia: {
+        name: '🏋️ Academias & Fitness',
+        goal: 45000,
+        rows: [
+          { Data: '02/11/2026', Modalidade: 'Musculação', Plano: 'Anual Recorrente', Professor: 'Marcos Silva', Mensalidade: 4800.00, Alunos_Ativos: 40, Status_Pagamento: 'Em Dia' },
+          { Data: '04/11/2026', Modalidade: 'CrossFit / Funcional', Plano: 'Semestral', Professor: 'Camila Rocha', Mensalidade: 6200.00, Alunos_Ativos: 31, Status_Pagamento: 'Em Dia' },
+          { Data: '06/11/2026', Modalidade: 'Pilates Studio', Plano: 'Trimestral', Professor: 'Dra. Juliana', Mensalidade: 5400.00, Alunos_Ativos: 18, Status_Pagamento: 'Em Dia' },
+          { Data: '08/11/2026', Modalidade: 'Musculação', Plano: 'Mensal Avulso', Professor: 'Marcos Silva', Mensalidade: 3900.00, Alunos_Ativos: 30, Status_Pagamento: 'Atrasado' },
+          { Data: '10/11/2026', Modalidade: 'Artes Marciais / Boxe', Plano: 'Semestral', Professor: 'Rafael Mendes', Mensalidade: 4400.00, Alunos_Ativos: 22, Status_Pagamento: 'Em Dia' },
+          { Data: '12/11/2026', Modalidade: 'Spinning & Cardio', Plano: 'Anual Recorrente', Professor: 'Camila Rocha', Mensalidade: 5100.00, Alunos_Ativos: 34, Status_Pagamento: 'Em Dia' },
+          { Data: '14/11/2026', Modalidade: 'Natação & Hidro', Plano: 'Trimestral', Professor: 'Lucas Ferreira', Mensalidade: 6800.00, Alunos_Ativos: 25, Status_Pagamento: 'Em Dia' },
+          { Data: '16/11/2026', Modalidade: 'Personal & Avaliação', Plano: 'Pacote VIP', Professor: 'Marcos Silva', Mensalidade: 3200.00, Alunos_Ativos: 12, Status_Pagamento: 'Inadimplente' }
+        ]
+      },
+      clinica: {
+        name: 'Clínica & Atendimentos',
+        goal: 6000,
+        rows: [
+          { Data: '01/10/2026', Profissional: 'Dra. Beatriz', Especialidade: 'Dermatologia', Convenio: 'Particular', Receita: 450.00, Duracao_Min: 40 },
+          { Data: '03/10/2026', Profissional: 'Dr. Henrique', Especialidade: 'Ortopedia', Convenio: 'Unimed', Receita: 280.00, Duracao_Min: 30 },
+          { Data: '08/10/2026', Profissional: 'Dra. Beatriz', Especialidade: 'Dermatologia', Convenio: 'Unimed', Receita: 310.00, Duracao_Min: 35 },
+          { Data: '12/10/2026', Profissional: 'Dra. Paula', Especialidade: 'Fisioterapia', Convenio: 'Particular', Receita: 220.00, Duracao_Min: 50 },
+          { Data: '19/10/2026', Profissional: 'Dr. Henrique', Especialidade: 'Ortopedia', Convenio: 'Bradesco', Receita: 350.00, Duracao_Min: 30 },
+          { Data: '25/10/2026', Profissional: 'Dra. Paula', Especialidade: 'Fisioterapia', Convenio: 'Unimed', Receita: 180.00, Duracao_Min: 45 },
+          { Data: '02/11/2026', Profissional: 'Dra. Beatriz', Especialidade: 'Estética', Convenio: 'Particular', Receita: 890.00, Duracao_Min: 60 },
+          { Data: '06/11/2026', Profissional: 'Dr. Henrique', Especialidade: 'Ortopedia', Convenio: 'Particular', Receita: 420.00, Duracao_Min: 35 },
+          { Data: '09/11/2026', Profissional: 'Dra. Paula', Especialidade: 'Pilates Clínico', Convenio: 'Particular', Receita: 340.00, Duracao_Min: 55 },
+          { Data: '11/11/2026', Profissional: 'Dra. Beatriz', Especialidade: 'Estética', Convenio: 'Particular', Receita: 950.00, Duracao_Min: 60 }
+        ]
+      },
+      logistica: {
+        name: 'Logística & Entregas',
+        goal: 2000,
+        rows: [
+          { Data: '02/10/2026', Rota: 'Bairro Mansour', Motorista: 'João', Status: 'Entregue', Valor_Frete: 185.00, Peso_Kg: 42 },
+          { Data: '06/10/2026', Rota: 'Centro', Motorista: 'Pedro', Status: 'Entregue', Valor_Frete: 120.00, Peso_Kg: 18 },
+          { Data: '11/10/2026', Rota: 'Santa Mônica', Motorista: 'Carlos', Status: 'Entregue', Valor_Frete: 210.00, Peso_Kg: 55 },
+          { Data: '16/10/2026', Rota: 'Tibery', Motorista: 'João', Status: 'Atrasado', Valor_Frete: 160.00, Peso_Kg: 30 },
+          { Data: '23/10/2026', Rota: 'Bairro Mansour', Motorista: 'Pedro', Status: 'Entregue', Valor_Frete: 240.00, Peso_Kg: 64 },
+          { Data: '03/11/2026', Rota: 'Santa Mônica', Motorista: 'Carlos', Status: 'Entregue', Valor_Frete: 310.00, Peso_Kg: 80 },
+          { Data: '07/11/2026', Rota: 'Centro', Motorista: 'João', Status: 'Entregue', Valor_Frete: 145.00, Peso_Kg: 25 },
+          { Data: '11/11/2026', Rota: 'Umuarama', Motorista: 'Pedro', Status: 'Entregue', Valor_Frete: 275.00, Peso_Kg: 70 }
+        ]
+      },
+      estoque: {
+        name: 'Estoque & Produtos',
+        goal: 500,
+        rows: [
+          { Produto: 'Mouse Sem Fio Pro', Categoria: 'Periféricos', Quantidade: 45, Estoque_Minimo: 15, Valor_Unitario: 89.90 },
+          { Produto: 'Teclado Mecânico RGB', Categoria: 'Periféricos', Quantidade: 6, Estoque_Minimo: 10, Valor_Unitario: 249.00 },
+          { Produto: 'Monitor 24p Full HD', Categoria: 'Monitores', Quantidade: 0, Estoque_Minimo: 5, Valor_Unitario: 780.00 },
+          { Produto: 'Cabo HDMI 2m', Categoria: 'Acessórios', Quantidade: 120, Estoque_Minimo: 30, Valor_Unitario: 24.50 },
+          { Produto: 'SSD NVMe 1TB', Categoria: 'Hardware', Quantidade: 4, Estoque_Minimo: 8, Valor_Unitario: 420.00 },
+          { Produto: 'Headset Gamer USB', Categoria: 'Periféricos', Quantidade: 28, Estoque_Minimo: 12, Valor_Unitario: 189.00 },
+          { Produto: 'Webcam Full HD', Categoria: 'Acessórios', Quantidade: 3, Estoque_Minimo: 10, Valor_Unitario: 210.00 },
+          { Produto: 'Fonte 600W 80 Plus', Categoria: 'Hardware', Quantidade: 19, Estoque_Minimo: 8, Valor_Unitario: 340.00 }
+        ]
+      },
+      financeiro: {
+        name: 'Financeiro & Fluxo de Caixa',
+        goal: 85000,
+        rows: [
+          { Data: '01/10/2026', Centro_Custo: 'Vendas B2B', Tipo: 'Receita', Conta: 'Itaú Empresas', Valor_Liquido: 18500.00 },
+          { Data: '04/10/2026', Centro_Custo: 'Operacional', Tipo: 'Despesa', Conta: 'Nubank PJ', Valor_Liquido: 4200.00 },
+          { Data: '10/10/2026', Centro_Custo: 'Assinaturas SaaS', Tipo: 'Receita', Conta: 'Stripe', Valor_Liquido: 12400.00 },
+          { Data: '15/10/2026', Centro_Custo: 'Marketing', Tipo: 'Despesa', Conta: 'Nubank PJ', Valor_Liquido: 3100.00 },
+          { Data: '22/10/2026', Centro_Custo: 'Vendas B2B', Tipo: 'Receita', Conta: 'Itaú Empresas', Valor_Liquido: 21900.00 },
+          { Data: '02/11/2026', Centro_Custo: 'Assinaturas SaaS', Tipo: 'Receita', Conta: 'Stripe', Valor_Liquido: 15800.00 },
+          { Data: '05/11/2026', Centro_Custo: 'Infraestrutura', Tipo: 'Despesa', Conta: 'Itaú Empresas', Valor_Liquido: 2950.00 },
+          { Data: '11/11/2026', Centro_Custo: 'Consultoria', Tipo: 'Receita', Conta: 'Itaú Empresas', Valor_Liquido: 11200.00 }
+        ]
+      }
+    };
+
+    // ==================== STATE ====================
+    const state = {
+      datasetName: '',
+      rawRows: [],
+      undoStack: [],
+      columns: [],
+      selectedMetric: '',
+      selectedCatCol: '',
+      selectedCatVal: '__ALL__',
+      searchQuery: '',
+      aggMode: 'sum', // 'sum' | 'avg'
+      dateFrom: '',
+      dateTo: '',
+      goalValue: 55000,
+      lineMode: 'area', // 'area' | 'line' | 'bar'
+      compareMode: 'half',
+      sortCol: '',
+      sortAsc: true,
+      page: 1,
+      pageSize: 10,
+      theme: 'navy',
+      autoRefresh: true,
+      liveTimer: null,
+      charts: { line: null, bar: null, doughnut: null, gauge: null, compare: null, spark1: null, spark2: null, spark3: null }
+    };
+
+    // ==================== UTILITIES ====================
+    function showToast(msg, type = 'info', allowUndo = false) {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const colors = type === 'error'
+        ? 'bg-rose-600 text-white'
+        : type === 'success'
+        ? 'bg-emerald-500 text-slate-950'
+        : 'bg-sky-500 text-slate-950';
+      el.className = `pointer-events-auto flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold shadow-xl transition-all ${colors}`;
+      const span = document.createElement('span');
+      span.textContent = msg;
+      el.appendChild(span);
+      if (allowUndo && state.undoStack.length) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'underline font-extrabold px-1.5 py-0.5 rounded bg-black/15 hover:bg-black/25';
+        btn.textContent = 'Desfazer';
+        btn.addEventListener('click', () => { undoLastChange(); el.remove(); });
+        el.appendChild(btn);
+      }
+      container.appendChild(el);
+      setTimeout(() => { el.remove(); }, 4200);
+    }
+
+    function pushUndo() {
+      state.undoStack.push(JSON.parse(JSON.stringify(state.rawRows)));
+      if (state.undoStack.length > 15) state.undoStack.shift();
+    }
+
+    function undoLastChange() {
+      if (!state.undoStack.length) return;
+      state.rawRows = state.undoStack.pop();
+      document.getElementById('dataset-subtitle').textContent = `${state.datasetName} • ${state.rawRows.length} registros`;
+      saveToMemory();
+      populateCategoryValues();
+      renderDashboard();
+      showToast('Alteração desfeita!', 'info');
+    }
+
+    function animateNumber(el, targetVal, formatter) {
+      const startTime = performance.now();
+      const duration = 420;
+      function tick(now) {
+        const progress = Math.min(1, (now - startTime) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = formatter(targetVal * eased);
+        if (progress < 1) requestAnimationFrame(tick);
+        else el.textContent = formatter(targetVal);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function parseSmartNumber(val) {
+      if (typeof val === 'number') return isNaN(val) ? null : val;
+      if (val === null || val === undefined) return null;
+      let s = String(val).trim();
+      if (!s) return null;
+      s = s.replace(/R\$\s?/gi, '').replace(/\s/g, '').replace(/%$/, '');
+      if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+        s = s.replace(/\./g, '').replace(',', '.');
+      } else if (/^-?\d+,\d+$/.test(s)) {
+        s = s.replace(',', '.');
+      } else if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) {
+        s = s.replace(/,/g, '');
+      }
+      if (!/^-?\d+(\.\d+)?$/.test(s)) return null;
+      const n = Number(s);
+      return isNaN(n) ? null : n;
+    }
+
+    function parseSmartDate(val) {
+      if (val instanceof Date && !isNaN(val)) return val;
+      if (typeof val === 'number' && val > 25000 && val < 80000) {
+        const utcDays = Math.floor(val - 25569);
+        return new Date(utcDays * 86400 * 1000);
+      }
+      const s = String(val || '').trim();
+      let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+      if (m) {
+        const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+        return isNaN(d) ? null : d;
+      }
+      m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (m) {
+        const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+        return isNaN(d) ? null : d;
+      }
+      return null;
+    }
+
+    function formatValue(num, isCurrency) {
+      if (num === null || num === undefined || isNaN(num)) return '—';
+      if (isCurrency) {
+        return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 });
+      }
+      return num.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+    }
+
+    function detectColumns(rows) {
+      if (!rows.length) return [];
+      const keys = Object.keys(rows[0]);
+      return keys.map(key => {
+        let nonEmpty = 0, numCount = 0, dateCount = 0, currencyHits = 0;
+        const sample = rows.slice(0, 50);
+        for (const r of sample) {
+          const v = r[key];
+          if (v === null || v === undefined || String(v).trim() === '') continue;
+          nonEmpty++;
+          if (String(v).includes('R$') || /valor|faturamento|receita|preco|preço|custo|frete|total|lucro|venda/i.test(key)) {
+            currencyHits++;
+          }
+          if (parseSmartDate(v) !== null) dateCount++;
+          else if (parseSmartNumber(v) !== null) numCount++;
+        }
+        let type = 'category';
+        if (nonEmpty > 0) {
+          if (dateCount / nonEmpty >= 0.6) type = 'date';
+          else if (numCount / nonEmpty >= 0.6) type = 'number';
+        }
+        return { name: key, type, isCurrency: type === 'number' && currencyHits > 0 };
+      });
+    }
+
+    function getThemeColors() {
+      const t = state.theme;
+      if (t === 'purple') return { primary: '#c084fc', secondary: '#f97316', fill: 'rgba(192, 132, 252, 0.20)', palette: ['#c084fc', '#f97316', '#38bdf8', '#ec4899', '#a78bfa', '#34d399', '#64748b'], text: '#e2e8f0', grid: 'rgba(192, 132, 252, 0.12)' };
+      if (t === 'emerald') return { primary: '#10b981', secondary: '#34d399', fill: 'rgba(16, 185, 129, 0.20)', palette: ['#10b981', '#34d399', '#38bdf8', '#f59e0b', '#a78bfa', '#fb7185', '#64748b'], text: '#d1fae5', grid: 'rgba(16, 185, 129, 0.12)' };
+      if (t === 'light') return { primary: '#4f46e5', secondary: '#0ea5e9', fill: 'rgba(79, 70, 229, 0.14)', palette: ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#94a3b8'], text: '#475569', grid: 'rgba(15, 23, 42, 0.07)' };
+      return { primary: '#38bdf8', secondary: '#6366f1', fill: 'rgba(56, 189, 248, 0.20)', palette: ['#38bdf8', '#6366f1', '#10b981', '#f59e0b', '#ec4899', '#a78bfa', '#64748b'], text: '#cbd5e1', grid: 'rgba(56, 189, 248, 0.10)' };
+    }
+
+    function applyTheme(themeName) {
+      state.theme = themeName;
+      document.documentElement.setAttribute('data-theme', themeName);
+      if (themeName === 'light') document.documentElement.classList.remove('dark');
+      else document.documentElement.classList.add('dark');
+      try { localStorage.setItem('pulsebi_v2_theme', themeName); } catch (e) {}
+      if (state.rawRows.length) renderDashboard();
+    }
+
+    // ==================== PARSERS ====================
+    function parseDelimitedText(text) {
+      const lines = text.split(/\r?\n/).map(l => l.trimEnd()).filter(l => l.length > 0);
+      if (lines.length < 2) return [];
+      const first = lines[0];
+      const tabCount = (first.match(/\t/g) || []).length;
+      const semiCount = (first.match(/;/g) || []).length;
+      const commaCount = (first.match(/,/g) || []).length;
+      const sep = tabCount >= semiCount && tabCount >= commaCount && tabCount > 0 ? '\t'
+                : semiCount >= commaCount && semiCount > 0 ? ';' : ',';
+
+      const splitLine = (line) => {
+        if (sep === '\t') return line.split('\t').map(c => c.trim());
+        const res = [];
+        let cur = '', inQ = false;
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') inQ = !inQ;
+          else if (ch === sep && !inQ) { res.push(cur.trim()); cur = ''; }
+          else cur += ch;
+        }
+        res.push(cur.trim());
+        return res;
+      };
+
+      const headers = splitLine(lines[0]).map((h, i) => h || `Coluna_${i + 1}`);
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        const vals = splitLine(lines[i]);
+        if (vals.every(v => !v)) continue;
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h] = vals[idx] !== undefined ? vals[idx] : ''; });
+        rows.push(obj);
+      }
+      return rows;
+    }
+
+    function parseAnyText(txt) {
+      const trimmed = txt.trim();
+      if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          const arr = Array.isArray(parsed) ? parsed : (parsed.data || parsed.rows || [parsed]);
+          if (Array.isArray(arr) && arr.length && typeof arr[0] === 'object') return arr;
+        } catch (e) {}
+      }
+      return parseDelimitedText(trimmed);
+    }
+
+    function loadDataset(name, rows, customGoal = null) {
+      if (!rows || !rows.length) {
+        showToast('Nenhum dado válido encontrado na planilha.', 'error');
+        return;
+      }
+      state.datasetName = name;
+      state.rawRows = rows;
+      state.undoStack = [];
+      state.columns = detectColumns(rows);
+
+      const numCols = state.columns.filter(c => c.type === 'number');
+      const catCols = state.columns.filter(c => c.type === 'category');
+
+      state.selectedMetric = numCols.length ? numCols[0].name : state.columns[0].name;
+      state.selectedCatCol = catCols.length ? catCols[0].name : state.columns[0].name;
+      state.selectedCatVal = '__ALL__';
+      state.searchQuery = '';
+      state.aggMode = 'sum';
+      state.dateFrom = '';
+      state.dateTo = '';
+      state.sortCol = '';
+      state.page = 1;
+      const aggSel = document.getElementById('select-agg-mode');
+      if (aggSel) aggSel.value = 'sum';
+      const dfEl = document.getElementById('input-date-from');
+      const dtEl = document.getElementById('input-date-to');
+      if (dfEl) dfEl.value = '';
+      if (dtEl) dtEl.value = '';
+
+      if (customGoal) {
+        state.goalValue = customGoal;
+      } else {
+        const total = rows.reduce((acc, r) => acc + (parseSmartNumber(r[state.selectedMetric]) ?? 0), 0);
+        state.goalValue = total > 0 ? Math.round(total * 1.15) : 100;
+      }
+      document.getElementById('input-goal').value = state.goalValue;
+      document.getElementById('dataset-subtitle').textContent = `${name} • ${rows.length} registros`;
+      document.getElementById('input-search').value = '';
+      saveToMemory();
+
+      renderSchemaEditor();
+      populateSelectors();
+      renderDashboard();
+      switchTab('dashboard');
+      showToast(`Dados carregados: ${rows.length} linhas!`, 'success');
+    }
+
+    // ==================== FILTERING & RENDERING ====================
+    function getFilteredRows() {
+      const dateCol = state.columns.find(c => c.type === 'date');
+      const fromTs = state.dateFrom ? new Date(state.dateFrom + 'T00:00:00').getTime() : null;
+      const toTs = state.dateTo ? new Date(state.dateTo + 'T23:59:59').getTime() : null;
+
+      return state.rawRows.filter(row => {
+        if (state.selectedCatVal !== '__ALL__' && state.selectedCatCol) {
+          if (String(row[state.selectedCatCol] ?? '') !== state.selectedCatVal) return false;
+        }
+        if ((fromTs !== null || toTs !== null) && dateCol) {
+          const d = parseSmartDate(row[dateCol.name]);
+          if (!d) return false;
+          const ts = d.getTime();
+          if (fromTs !== null && ts < fromTs) return false;
+          if (toTs !== null && ts > toTs) return false;
+        }
+        if (state.searchQuery) {
+          const q = state.searchQuery.toLowerCase();
+          const hit = Object.values(row).some(v => String(v ?? '').toLowerCase().includes(q));
+          if (!hit) return false;
+        }
+        return true;
+      });
+    }
+
+    function populateSelectors() {
+      const metricSel = document.getElementById('select-metric');
+      const catColSel = document.getElementById('select-category-col');
+
+      const numCols = state.columns.filter(c => c.type === 'number');
+      const catCols = state.columns.filter(c => c.type !== 'date');
+
+      metricSel.innerHTML = '';
+      (numCols.length ? numCols : state.columns).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.name;
+        opt.textContent = c.name;
+        if (c.name === state.selectedMetric) opt.selected = true;
+        metricSel.appendChild(opt);
+      });
+
+      catColSel.innerHTML = '';
+      (catCols.length ? catCols : state.columns).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.name;
+        opt.textContent = c.name;
+        if (c.name === state.selectedCatCol) opt.selected = true;
+        catColSel.appendChild(opt);
+      });
+
+      populateCategoryValues();
+    }
+
+    function populateCategoryValues() {
+      const valSel = document.getElementById('select-category-val');
+      const unique = [...new Set(state.rawRows.map(r => String(r[state.selectedCatCol] ?? '')).filter(Boolean))].sort();
+      valSel.innerHTML = '<option value="__ALL__">Todos</option>';
+      unique.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        if (v === state.selectedCatVal) opt.selected = true;
+        valSel.appendChild(opt);
+      });
+      renderSlicerPills(unique);
+    }
+
+    function renderSlicerPills(uniqueValues) {
+      const container = document.getElementById('slicer-pills');
+      const vals = ['__ALL__', ...uniqueValues.slice(0, 10)];
+      container.innerHTML = vals.map(v => {
+        const active = state.selectedCatVal === v;
+        const label = v === '__ALL__' ? 'Todos' : v;
+        const cls = active
+          ? 'bg-sky-500 text-slate-950 font-bold shadow-sm'
+          : 'border border-white/15 text-muted-exec hover:bg-white/10';
+        return `<button type="button" data-slicer="${v}" class="btn-lift px-2.5 py-1 rounded-lg text-xs ${cls}">${label}</button>`;
+      }).join('');
+
+      container.querySelectorAll('button[data-slicer]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.getAttribute('data-slicer');
+          state.selectedCatVal = val;
+          document.getElementById('select-category-val').value = val;
+          state.page = 1;
+          renderSlicerPills(uniqueValues);
+          renderDashboard();
+        });
+      });
+    }
+
+    function renderSchemaEditor() {
+      const container = document.getElementById('schema-list');
+      container.innerHTML = '';
+      state.columns.forEach((col, idx) => {
+        const card = document.createElement('div');
+        card.className = 'p-3 rounded-xl border border-white/15 bg-black/20';
+        card.innerHTML = `
+          <div class="text-xs font-bold truncate mb-2" title="${col.name}">${col.name}</div>
+          <select data-col-idx="${idx}" class="schema-type-select exec-input w-full rounded-lg px-2 py-1.5 text-xs font-medium">
+            <option value="category" ${col.type === 'category' ? 'selected' : ''}>Categoria / Texto</option>
+            <option value="number" ${col.type === 'number' && !col.isCurrency ? 'selected' : ''}>Número</option>
+            <option value="currency" ${col.type === 'number' && col.isCurrency ? 'selected' : ''}>Moeda (R$)</option>
+            <option value="date" ${col.type === 'date' ? 'selected' : ''}>Data</option>
+          </select>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleCrossFilter(catValue) {
+      state.selectedCatVal = (state.selectedCatVal === catValue) ? '__ALL__' : catValue;
+      document.getElementById('select-category-val').value = state.selectedCatVal;
+      const unique = [...new Set(state.rawRows.map(r => String(r[state.selectedCatCol] ?? '')).filter(Boolean))].sort();
+      renderSlicerPills(unique);
+      state.page = 1;
+      renderDashboard();
+    }
+
+    
+    function detectStockAlerts(rows) {
+      if (!rows.length || !state.columns.length) return null;
+      const minCol = state.columns.find(c => /minimo|mínimo|min_estoque|estoque_min/i.test(c.name));
+      const qtyCol = state.columns.find(c => c.type === 'number' && /qtd|quant|estoque|saldo|unid/i.test(c.name) && (!minCol || c.name !== minCol.name));
+      if (!minCol || !qtyCol) return null;
+
+      const labelCol = state.columns.find(c => c.type === 'category')?.name || state.selectedCatCol;
+      const outOfStock = [];
+      const lowStock = [];
+
+      rows.forEach(r => {
+        const qty = parseSmartNumber(r[qtyCol.name]);
+        const minQ = parseSmartNumber(r[minCol.name]);
+        if (qty === null || minQ === null) return;
+        const name = String(r[labelCol] || 'Item');
+        if (qty <= 0) outOfStock.push(name);
+        else if (qty <= minQ) lowStock.push(`${name} (${qty}/${minQ})`);
+      });
+
+      return { qtyCol: qtyCol.name, minCol: minCol.name, outOfStock, lowStock };
+    }
+
+    function detectCommercialMetrics(rows) {
+      if (!rows.length || !state.columns.length) return null;
+      const dateCol = state.columns.find(c => c.type === 'date');
+      const boxCol = state.columns.find(c => c.type === 'number' && /caixa|unidades|qtd|volume|fardo|separada/i.test(c.name));
+      const revCol = state.columns.find(c => c.type === 'number' && /faturamento|receita|valor|bruto|liquido|venda/i.test(c.name));
+      const sellerCol = state.columns.find(c => /vendedor|representante|consultor|operador|motorista|profissional|colaborador/i.test(c.name));
+      const clientCol = state.columns.find(c => /cliente|pdv|estabelecimento|conta|razao|mercado/i.test(c.name));
+      const payCol = state.columns.find(c => /pagamento|assiduidade|status_pag|inadimpl|situacao|status/i.test(c.name));
+
+      const uniqueDates = new Set();
+      const uniqueMonths = new Set();
+      rows.forEach(r => {
+        if (dateCol) {
+          const d = parseSmartDate(r[dateCol.name]);
+          if (d) {
+            uniqueDates.add(d.toISOString().slice(0, 10));
+            uniqueMonths.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+          } else if (r[dateCol.name]) {
+            uniqueDates.add(String(r[dateCol.name]));
+          }
+        }
+      });
+      const daysCount = Math.max(1, uniqueDates.size || 1);
+      const monthsCount = Math.max(1, uniqueMonths.size || 1);
+
+      let totalBoxes = 0;
+      if (boxCol) {
+        rows.forEach(r => { totalBoxes += (parseSmartNumber(r[boxCol.name]) ?? 0); });
+      }
+      const boxesPerDay = boxCol ? (totalBoxes / daysCount) : null;
+
+      let totalRev = 0;
+      const activeMetricCol = revCol || state.columns.find(c => c.name === state.selectedMetric);
+      if (activeMetricCol && activeMetricCol.type === 'number') {
+        rows.forEach(r => { totalRev += (parseSmartNumber(r[activeMetricCol.name]) ?? 0); });
+      }
+      const monthlyRevAvg = totalRev / monthsCount;
+
+      let sellersCount = 0;
+      let sellerDailyAvg = null;
+      let sellerBoxesDailyAvg = null;
+      if (sellerCol) {
+        const sellers = new Set(rows.map(r => String(r[sellerCol.name] ?? '').trim()).filter(Boolean));
+        sellersCount = Math.max(1, sellers.size);
+        sellerDailyAvg = totalRev / (sellersCount * daysCount);
+        if (boxCol) sellerBoxesDailyAvg = totalBoxes / (sellersCount * daysCount);
+      }
+
+      let assiduityPct = null;
+      let lateCount = 0;
+      if (payCol) {
+        let onTime = 0, totalPayRows = 0;
+        rows.forEach(r => {
+          const s = String(r[payCol.name] ?? '').trim();
+          if (!s) return;
+          totalPayRows++;
+          if (/em dia|pago|quitado|ok|adimplente|entregue|concluido/i.test(s)) onTime++;
+          else if (/atras|inadimpl|pendente|vencido|aberto/i.test(s)) lateCount++;
+        });
+        if (totalPayRows > 0) assiduityPct = (onTime / totalPayRows) * 100;
+      }
+
+      const zeroSaleClients = [];
+      if (clientCol) {
+        const clientTotals = {};
+        rows.forEach(r => {
+          const cl = String(r[clientCol.name] ?? '').trim();
+          if (!cl) return;
+          const v = (revCol ? (parseSmartNumber(r[revCol.name]) ?? 0) : 0) + (boxCol ? (parseSmartNumber(r[boxCol.name]) ?? 0) : 0);
+          clientTotals[cl] = (clientTotals[cl] || 0) + v;
+        });
+        Object.entries(clientTotals).forEach(([cl, tot]) => {
+          if (tot <= 0) zeroSaleClients.push(cl);
+        });
+      }
+
+      return {
+        daysCount,
+        monthsCount,
+        boxColName: boxCol ? boxCol.name : null,
+        totalBoxes,
+        boxesPerDay,
+        revColName: activeMetricCol ? activeMetricCol.name : state.selectedMetric,
+        isRevCurrency: activeMetricCol ? activeMetricCol.isCurrency : false,
+        totalRev,
+        monthlyRevAvg,
+        sellerColName: sellerCol ? sellerCol.name : null,
+        sellersCount,
+        sellerDailyAvg,
+        sellerBoxesDailyAvg,
+        payColName: payCol ? payCol.name : null,
+        assiduityPct,
+        lateCount,
+        clientColName: clientCol ? clientCol.name : null,
+        zeroSaleClients
+      };
+    }
+
+    function renderDashboard() {
+      const rows = getFilteredRows();
+      const metricColObj = state.columns.find(c => c.name === state.selectedMetric) || { name: state.selectedMetric, type: 'number', isCurrency: false };
+      const isNum = metricColObj.type === 'number';
+      const isCur = metricColObj.isCurrency;
+
+      let sum = 0, countValid = 0, maxVal = -Infinity;
+      const groupedSum = {};
+      const groupedCount = {};
+      const valuesSeq = [];
+
+      rows.forEach(r => {
+        const catKey = String(r[state.selectedCatCol] ?? 'Outros') || 'Outros';
+        const v = isNum ? (parseSmartNumber(r[state.selectedMetric]) ?? 0) : 1;
+        sum += v;
+        countValid++;
+        valuesSeq.push(v);
+        if (v > maxVal) maxVal = v;
+        groupedSum[catKey] = (groupedSum[catKey] || 0) + v;
+        groupedCount[catKey] = (groupedCount[catKey] || 0) + 1;
+      });
+
+      const isAvgMode = state.aggMode === 'avg' && isNum;
+      const grouped = {};
+      Object.keys(groupedSum).forEach(k => {
+        grouped[k] = isAvgMode ? (groupedSum[k] / Math.max(1, groupedCount[k])) : groupedSum[k];
+      });
+
+      const avg = countValid > 0 ? sum / countValid : 0;
+      const totalGroupMetric = Object.values(grouped).reduce((a, b) => a + b, 0);
+      const sortedGroups = Object.entries(grouped).sort((a, b) => b[1] - a[1]);
+      const leader = sortedGroups.length ? sortedGroups[0] : ['—', 0];
+      const leaderPct = totalGroupMetric > 0 ? ((leader[1] / totalGroupMetric) * 100).toFixed(1) : '0.0';
+
+      const mid = Math.floor(valuesSeq.length / 2);
+      const firstHalf = valuesSeq.slice(0, mid).reduce((a, b) => a + b, 0);
+      const secondHalf = valuesSeq.slice(mid).reduce((a, b) => a + b, 0);
+      const deltaPct = firstHalf > 0 ? (((secondHalf - firstHalf) / firstHalf) * 100) : 0;
+      const deltaStr = `${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(1)}%`;
+
+      document.getElementById('kpi-1-label').textContent = isNum ? `Total (${state.selectedMetric})` : 'Total de Registros';
+      if (isNum) animateNumber(document.getElementById('kpi-1-val'), sum, v => formatValue(v, isCur));
+      else animateNumber(document.getElementById('kpi-1-val'), rows.length, v => Math.round(v).toLocaleString('pt-BR'));
+
+      const kpi1Badge = document.getElementById('kpi-1-badge');
+      kpi1Badge.textContent = `${deltaStr} período`;
+      kpi1Badge.className = `px-2 py-0.5 rounded-full text-[11px] font-bold ${deltaPct >= 0 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}`;
+
+      if (isNum) animateNumber(document.getElementById('kpi-2-val'), avg, v => formatValue(v, isCur));
+      else document.getElementById('kpi-2-val').textContent = '1,0';
+
+      const pctTotal = state.rawRows.length > 0 ? Math.round((rows.length / state.rawRows.length) * 100) : 100;
+      animateNumber(document.getElementById('kpi-3-val'), rows.length, v => Math.round(v).toLocaleString('pt-BR'));
+      document.getElementById('kpi-3-badge').textContent = `${pctTotal}% base`;
+      document.getElementById('kpi-3-sub').textContent = `${Object.keys(grouped).length} grupos em ${state.selectedCatCol}`;
+
+      document.getElementById('kpi-4-val').textContent = leader[0];
+      document.getElementById('kpi-4-sub').textContent = `${formatValue(leader[1], isCur)} (${leaderPct}%)`;
+      document.getElementById('kpi-4-peak').textContent = maxVal > -Infinity ? formatValue(maxVal, isCur) : '—';
+
+      const insightEl = document.getElementById('insights-text');
+      if (rows.length) {
+        const trendWord = deltaPct >= 0 ? `alta de ${deltaPct.toFixed(1)}%` : `queda de ${Math.abs(deltaPct).toFixed(1)}%`;
+        const stockInfo = detectStockAlerts(rows);
+        let extraStock = '';
+        if (stockInfo && (stockInfo.outOfStock.length || stockInfo.lowStock.length)) {
+          const zerados = stockInfo.outOfStock.length ? `<span class="text-rose-400 font-bold">Em falta (0): ${stockInfo.outOfStock.join(', ')}.</span> ` : '';
+          const baixos = stockInfo.lowStock.length ? `<span class="text-amber-400 font-bold">Abaixo do mínimo: ${stockInfo.lowStock.join(', ')}.</span>` : '';
+          extraStock = ` ${zerados}${baixos}`;
+        }
+        const comm = detectCommercialMetrics(rows);
+        const commPills = [];
+        if (comm) {
+          if (comm.boxesPerDay !== null) {
+            commPills.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/15 text-sky-300 text-[11px] font-semibold">📦 Caixas/Dia: <strong>${comm.boxesPerDay.toFixed(1)}</strong> (${comm.totalBoxes} total)</span>`);
+          }
+          if (comm.sellerDailyAvg !== null) {
+            const boxPart = comm.sellerBoxesDailyAvg !== null ? ` • ${comm.sellerBoxesDailyAvg.toFixed(1)} cx/dia` : '';
+            commPills.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 text-[11px] font-semibold">👤 Vendedor/Dia: <strong>${formatValue(comm.sellerDailyAvg, comm.isRevCurrency)}</strong>${boxPart}</span>`);
+          }
+          if (comm.assiduityPct !== null) {
+            const badgeColor = comm.assiduityPct >= 85 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300';
+            commPills.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md ${badgeColor} text-[11px] font-semibold">💳 Assiduidade Pagto: <strong>${comm.assiduityPct.toFixed(1)}%</strong></span>`);
+          }
+          if (comm.zeroSaleClients.length > 0) {
+            commPills.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-500/20 text-rose-300 text-[11px] font-semibold">⚠️ Clientes Sem Venda (${comm.zeroSaleClients.length}): <strong>${comm.zeroSaleClients.join(', ')}</strong></span>`);
+          }
+        }
+        const pillsHtml = commPills.length ? `<div class="flex flex-wrap gap-1.5 mt-2">${commPills.join('')}</div>` : '';
+        insightEl.innerHTML = `<strong>${leader[0]}</strong> lidera em <em>${state.selectedCatCol}</em> com <strong>${leaderPct}%</strong> do volume (${formatValue(leader[1], isCur)}). Na segunda metade dos registros houve <strong>${trendWord}</strong>, com média de <strong>${formatValue(avg, isCur)}</strong> por item.${extraStock}${pillsHtml}`;
+      } else {
+        insightEl.textContent = 'Nenhum registro ativo para gerar insights com os filtros atuais.';
+      }
+
+      document.getElementById('sync-badge').textContent = `Atualizado às ${new Date().toLocaleTimeString('pt-BR')}`;
+
+      renderCharts(rows, sortedGroups, valuesSeq, sum, isNum, isCur);
+      renderTable(rows);
+    }
+
+    function renderSparkline(canvasId, key, dataArr, color) {
+      if (state.charts[key]) { state.charts[key].destroy(); state.charts[key] = null; }
+      const vals = dataArr.length > 1 ? dataArr.slice(-14) : [0, 1];
+      state.charts[key] = new Chart(document.getElementById(canvasId), {
+        type: 'line',
+        data: {
+          labels: vals.map((_, i) => i),
+          datasets: [{ data: vals, borderColor: color, borderWidth: 2, fill: false, tension: 0.4, pointRadius: 0 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: { x: { display: false }, y: { display: false } }
+        }
+      });
+    }
+
+    
+    function splitComparePeriods(rows) {
+      const dateCol = state.columns.find(c => c.type === 'date');
+      if (state.compareMode !== 'half' && dateCol) {
+        const dated = rows.map(r => ({ r, d: parseSmartDate(r[dateCol.name]) })).filter(x => x.d !== null);
+        if (dated.length) {
+          const maxDate = new Date(Math.max(...dated.map(x => x.d.getTime())));
+          if (state.compareMode === 'yoy') {
+            const curYear = maxDate.getFullYear();
+            const curMonth = maxDate.getMonth();
+            const prevYear = curYear - 1;
+            const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const curRows = dated.filter(x => x.d.getFullYear() === curYear && x.d.getMonth() === curMonth).map(x => x.r);
+            const prevRows = dated.filter(x => x.d.getFullYear() === prevYear && x.d.getMonth() === curMonth).map(x => x.r);
+            if (curRows.length || prevRows.length) {
+              return {
+                curRows,
+                prevRows,
+                curLabel: `${monthNames[curMonth]}/${curYear} (Atual)`,
+                prevLabel: `${monthNames[curMonth]}/${prevYear} (Ano Passado)`
+              };
+            }
+          } else {
+            const maxTs = maxDate.getTime();
+            const days = state.compareMode === '7d' ? 7 : 30;
+            const ms = days * 86400 * 1000;
+            const curStart = maxTs - ms;
+            const prevStart = curStart - ms;
+            const curRows = dated.filter(x => x.d.getTime() > curStart).map(x => x.r);
+            const prevRows = dated.filter(x => x.d.getTime() > prevStart && x.d.getTime() <= curStart).map(x => x.r);
+            return { curRows, prevRows, curLabel: `Últimos ${days} dias`, prevLabel: `${days} dias anteriores` };
+          }
+        }
+      }
+      const mid = Math.floor(rows.length / 2);
+      return {
+        prevRows: rows.slice(0, mid),
+        curRows: rows.slice(mid),
+        curLabel: 'Período Atual',
+        prevLabel: 'Período Anterior'
+      };
+    }
+
+    function renderCompareChart(rows, isNum, tc) {
+      const { curRows, prevRows, curLabel, prevLabel } = splitComparePeriods(rows);
+      const cats = new Set();
+      const curSum = {}, curCnt = {}, prevSum = {}, prevCnt = {};
+
+      curRows.forEach(r => {
+        const k = String(r[state.selectedCatCol] ?? 'Outros') || 'Outros';
+        cats.add(k);
+        curSum[k] = (curSum[k] || 0) + (isNum ? (parseSmartNumber(r[state.selectedMetric]) ?? 0) : 1);
+        curCnt[k] = (curCnt[k] || 0) + 1;
+      });
+      prevRows.forEach(r => {
+        const k = String(r[state.selectedCatCol] ?? 'Outros') || 'Outros';
+        cats.add(k);
+        prevSum[k] = (prevSum[k] || 0) + (isNum ? (parseSmartNumber(r[state.selectedMetric]) ?? 0) : 1);
+        prevCnt[k] = (prevCnt[k] || 0) + 1;
+      });
+
+      const isAvgMode = state.aggMode === 'avg' && isNum;
+      const curMap = {}, prevMap = {};
+      cats.forEach(k => {
+        curMap[k] = isAvgMode ? (curSum[k] ? curSum[k] / curCnt[k] : 0) : (curSum[k] || 0);
+        prevMap[k] = isAvgMode ? (prevSum[k] ? prevSum[k] / prevCnt[k] : 0) : (prevSum[k] || 0);
+      });
+
+      const modeTag = isAvgMode ? 'Média' : 'Soma';
+      const topCats = [...cats].sort((a, b) => ((curMap[b] || 0) + (prevMap[b] || 0)) - ((curMap[a] || 0) + (prevMap[a] || 0))).slice(0, 8);
+      document.getElementById('chart-compare-sub').textContent = `${curLabel} vs. ${prevLabel} por ${state.selectedCatCol} (${modeTag})`;
+
+      state.charts.compare = new Chart(document.getElementById('chart-compare'), {
+        type: 'bar',
+        data: {
+          labels: topCats,
+          datasets: [
+            { label: prevLabel, data: topCats.map(c => prevMap[c] || 0), backgroundColor: 'rgba(148, 163, 184, 0.45)', borderRadius: 6 },
+            { label: curLabel, data: topCats.map(c => curMap[c] || 0), backgroundColor: tc.primary, borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top', labels: { color: tc.text, boxWidth: 12, font: { size: 11 } } } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: tc.text, font: { size: 11 } } },
+            y: { grid: { color: tc.grid }, ticks: { color: tc.text, font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    function renderCharts(rows, sortedGroups, valuesSeq, sum, isNum, isCur) {
+      const tc = getThemeColors();
+      ['line', 'bar', 'doughnut', 'gauge', 'compare'].forEach(k => {
+        if (state.charts[k]) { state.charts[k].destroy(); state.charts[k] = null; }
+      });
+
+      renderSparkline('spark-1', 'spark1', valuesSeq, tc.primary);
+      renderSparkline('spark-2', 'spark2', valuesSeq.map((v, i) => valuesSeq.slice(0, i + 1).reduce((a, b) => a + b, 0) / (i + 1)), '#10b981');
+      renderSparkline('spark-3', 'spark3', valuesSeq.map((_, i) => i + 1), '#f59e0b');
+
+      // 1. Main Timeline Chart (area / line / bar)
+      const dateCol = state.columns.find(c => c.type === 'date');
+      let timeLabels = [], timeValues = [];
+      const isAvgMode = state.aggMode === 'avg' && isNum;
+      const modeTag = isAvgMode ? 'Média' : 'Soma';
+      if (dateCol) {
+        const byDateSum = {}, byDateCnt = {};
+        rows.forEach(r => {
+          const d = parseSmartDate(r[dateCol.name]);
+          const key = d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` : String(r[dateCol.name] || 'Sem Data');
+          const v = isNum ? (parseSmartNumber(r[state.selectedMetric]) ?? 0) : 1;
+          byDateSum[key] = (byDateSum[key] || 0) + v;
+          byDateCnt[key] = (byDateCnt[key] || 0) + 1;
+        });
+        const sortedDates = Object.keys(byDateSum).sort();
+        timeLabels = sortedDates.map(k => { const p = k.split('-'); return p.length === 3 ? `${p[2]}/${p[1]}` : k; });
+        timeValues = sortedDates.map(k => isAvgMode ? (byDateSum[k] / Math.max(1, byDateCnt[k])) : byDateSum[k]);
+        document.getElementById('chart-line-sub').textContent = `${state.selectedMetric} (${modeTag}) por ${dateCol.name}`;
+      } else {
+        timeLabels = rows.slice(0, 30).map((_, i) => `#${i + 1}`);
+        timeValues = rows.slice(0, 30).map(r => isNum ? (parseSmartNumber(r[state.selectedMetric]) ?? 0) : 1);
+        document.getElementById('chart-line-sub').textContent = 'Sequência dos registros';
+      }
+
+      const isBarMode = state.lineMode === 'bar';
+      const isAreaMode = state.lineMode === 'area';
+      const lineCanvas = document.getElementById('chart-line');
+      const lineCtx = lineCanvas.getContext('2d');
+      const lineGrad = lineCtx.createLinearGradient(0, 0, 0, 270);
+      lineGrad.addColorStop(0, tc.fill.replace(/0\.[0-9]+\)/, '0.42)'));
+      lineGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      state.charts.line = new Chart(lineCanvas, {
+        type: isBarMode ? 'bar' : 'line',
+        data: {
+          labels: timeLabels,
+          datasets: [{
+            label: state.selectedMetric,
+            data: timeValues,
+            borderColor: tc.primary,
+            backgroundColor: isBarMode ? tc.primary : (isAreaMode ? lineGrad : 'transparent'),
+            borderWidth: isBarMode ? 0 : 3.5,
+            borderRadius: isBarMode ? 6 : 0,
+            fill: isAreaMode,
+            tension: isAreaMode ? 0.42 : 0.06,
+            pointRadius: 4,
+            pointBorderColor: state.theme === 'light' ? '#ffffff' : '#0f172a',
+            pointBorderWidth: 2,
+            pointBackgroundColor: tc.primary,
+            pointHoverRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 500 },
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: tc.text, font: { size: 11 } } },
+            y: { grid: { color: tc.grid }, ticks: { color: tc.text, font: { size: 11 } } }
+          }
+        }
+      });
+
+      // 2. Goal Gauge Chart
+      const goal = state.goalValue > 0 ? state.goalValue : 1;
+      const pct = Math.min(100, Math.max(0, (sum / goal) * 100));
+      const realPct = ((sum / goal) * 100).toFixed(1);
+      document.getElementById('gauge-pct-label').textContent = `${realPct}%`;
+      document.getElementById('gauge-realized').textContent = formatValue(sum, isCur);
+      const weeklyEl = document.getElementById('gauge-weekly');
+      if (weeklyEl) weeklyEl.textContent = formatValue(goal / 4, isCur);
+      const diff = goal - sum;
+      document.getElementById('gauge-diff-label').textContent = diff >= 0 ? 'Falta para a meta' : 'Acima da meta';
+      document.getElementById('gauge-diff-val').textContent = formatValue(Math.abs(diff), isCur);
+
+      state.charts.gauge = new Chart(document.getElementById('chart-gauge'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Realizado', 'Restante'],
+          datasets: [{
+            data: [pct, Math.max(0, 100 - pct)],
+            backgroundColor: [tc.primary, 'rgba(148, 163, 184, 0.15)'],
+            borderWidth: 0,
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          rotation: -90,
+          circumference: 180,
+          cutout: '76%',
+          plugins: { legend: { display: false }, tooltip: { enabled: false } }
+        }
+      });
+
+      // 3. Top 10 Horizontal Bar
+      const top10 = sortedGroups.slice(0, 10);
+      document.getElementById('chart-bar-sub').textContent = `${state.selectedMetric} (${modeTag}) por ${state.selectedCatCol}`;
+
+      state.charts.bar = new Chart(document.getElementById('chart-bar'), {
+        type: 'bar',
+        data: {
+          labels: top10.map(x => x[0]),
+          datasets: [{
+            label: state.selectedMetric,
+            data: top10.map(x => x[1]),
+            backgroundColor: tc.primary,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          onClick: (_, elements) => {
+            if (elements.length) toggleCrossFilter(top10[elements[0].index][0]);
+          },
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: tc.grid }, ticks: { color: tc.text, font: { size: 11 } } },
+            y: { grid: { display: false }, ticks: { color: tc.text, font: { size: 11 } } }
+          }
+        }
+      });
+
+      // 4. Elegant Animated Hover Doughnut
+      const top6 = sortedGroups.slice(0, 6);
+      const othersSum = sortedGroups.slice(6).reduce((acc, cur) => acc + cur[1], 0);
+      const doughLabels = top6.map(x => x[0]);
+      const doughData = top6.map(x => x[1]);
+      if (othersSum > 0) { doughLabels.push('Outros'); doughData.push(othersSum); }
+
+      document.getElementById('chart-doughnut-sub').textContent = `Agrupado por ${state.selectedCatCol}`;
+
+      state.charts.doughnut = new Chart(document.getElementById('chart-doughnut'), {
+        type: 'doughnut',
+        data: {
+          labels: doughLabels,
+          datasets: [{
+            data: doughData,
+            backgroundColor: tc.palette,
+            borderWidth: 0,
+            borderRadius: 6,
+            spacing: 3,
+            hoverOffset: 16
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '68%',
+          animation: { animateRotate: true, animateScale: true },
+          onClick: (_, elements) => {
+            if (elements.length) {
+              const label = doughLabels[elements[0].index];
+              if (label !== 'Outros') toggleCrossFilter(label);
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+
+      const legendList = document.getElementById('doughnut-legend-list');
+      const totalDough = doughData.reduce((a, b) => a + b, 0);
+      legendList.innerHTML = doughLabels.map((lbl, i) => {
+        const val = doughData[i];
+        const pct = totalDough > 0 ? ((val / totalDough) * 100).toFixed(1) : '0.0';
+        const color = tc.palette[i % tc.palette.length];
+        const clickable = lbl !== 'Outros' ? 'cursor-pointer hover:bg-white/10' : '';
+        return `
+          <div data-dough-lbl="${lbl}" class="p-2 rounded-xl transition-colors ${clickable}">
+            <div class="flex items-center justify-between gap-2 text-xs">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${color}"></span>
+                <span class="font-semibold truncate">${lbl}</span>
+              </div>
+              <span class="font-bold shrink-0">${pct}%</span>
+            </div>
+            <div class="flex items-center justify-between gap-2 mt-1">
+              <div class="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500" style="width:${pct}%; background:${color}"></div>
+              </div>
+              <span class="text-[11px] text-muted-exec shrink-0">${formatValue(val, isCur)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      legendList.querySelectorAll('div[data-dough-lbl]').forEach(el => {
+        const lbl = el.getAttribute('data-dough-lbl');
+        if (lbl !== 'Outros') {
+          el.addEventListener('click', () => toggleCrossFilter(lbl));
+        }
+      });
+      renderCompareChart(rows, isNum, tc);
+    }
+
+    function renderTable(rows) {
+      const thead = document.getElementById('table-head');
+      const tbody = document.getElementById('table-body');
+
+      let sorted = [...rows];
+      if (state.sortCol) {
+        const colObj = state.columns.find(c => c.name === state.sortCol);
+        sorted.sort((a, b) => {
+          let va = a[state.sortCol], vb = b[state.sortCol];
+          if (colObj && colObj.type === 'number') {
+            va = parseSmartNumber(va) ?? 0;
+            vb = parseSmartNumber(vb) ?? 0;
+            return state.sortAsc ? va - vb : vb - va;
+          }
+          return state.sortAsc
+            ? String(va ?? '').localeCompare(String(vb ?? ''), 'pt-BR')
+            : String(vb ?? '').localeCompare(String(va ?? ''), 'pt-BR');
+        });
+      }
+
+      const totalPages = Math.max(1, Math.ceil(sorted.length / state.pageSize));
+      if (state.page > totalPages) state.page = totalPages;
+      const start = (state.page - 1) * state.pageSize;
+      const slice = sorted.slice(start, start + state.pageSize);
+
+      document.getElementById('table-count-label').textContent = `${sorted.length} registro(s) encontrado(s)`;
+      document.getElementById('page-info').textContent = `Página ${state.page} de ${totalPages}`;
+      document.getElementById('btn-prev-page').disabled = state.page <= 1;
+      document.getElementById('btn-next-page').disabled = state.page >= totalPages;
+
+      thead.innerHTML = `<tr>${state.columns.map(c => {
+        const arrow = state.sortCol === c.name ? (state.sortAsc ? ' ▲' : ' ▼') : '';
+        return `<th data-sort="${c.name}" class="px-4 py-3 font-semibold cursor-pointer hover:text-sky-400 whitespace-nowrap select-none">${c.name}${arrow}</th>`;
+      }).join('')}<th class="no-print px-4 py-3 font-semibold text-right whitespace-nowrap">Ações</th></tr>`;
+
+      tbody.innerHTML = slice.length ? slice.map(r => {
+        const rawIdx = state.rawRows.indexOf(r);
+        return `
+        <tr class="row-lift hover:bg-white/5 transition-colors">
+          ${state.columns.map(c => {
+            let val = r[c.name] ?? '';
+            if (c.type === 'number') {
+              const n = parseSmartNumber(val);
+              val = n !== null ? formatValue(n, c.isCurrency) : val;
+            }
+            return `<td data-cell-idx="${rawIdx}" data-cell-col="${c.name}" title="Duplo clique para editar" class="px-4 py-3 whitespace-nowrap cursor-text hover:bg-sky-500/10 transition-colors">${val}</td>`;
+          }).join('')}
+          <td class="no-print px-4 py-3 whitespace-nowrap text-right space-x-1.5">
+            <button type="button" data-edit-idx="${rawIdx}" class="btn-lift px-2 py-1 rounded-lg text-[11px] font-semibold bg-sky-500/15 text-sky-400 hover:bg-sky-500/25">Editar</button>
+            <button type="button" data-del-idx="${rawIdx}" class="btn-lift px-2 py-1 rounded-lg text-[11px] font-semibold bg-rose-500/15 text-rose-400 hover:bg-rose-500/25">Excluir</button>
+          </td>
+        </tr>`;
+      }).join('') : `<tr><td colspan="${state.columns.length + 1}" class="px-4 py-8 text-center text-muted-exec">Nenhum registro corresponde aos filtros atuais.</td></tr>`;
+
+      thead.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const col = th.getAttribute('data-sort');
+          if (state.sortCol === col) state.sortAsc = !state.sortAsc;
+          else { state.sortCol = col; state.sortAsc = true; }
+          renderTable(getFilteredRows());
+        });
+      });
+
+      tbody.querySelectorAll('td[data-cell-idx]').forEach(td => {
+        td.addEventListener('dblclick', () => startInlineEdit(td));
+      });
+      tbody.querySelectorAll('button[data-edit-idx]').forEach(btn => {
+        btn.addEventListener('click', () => openRowModal(Number(btn.getAttribute('data-edit-idx'))));
+      });
+      tbody.querySelectorAll('button[data-del-idx]').forEach(btn => {
+        btn.addEventListener('click', () => deleteRowByIdx(Number(btn.getAttribute('data-del-idx'))));
+      });
+    }
+
+    function startInlineEdit(td) {
+      if (td.querySelector('input')) return;
+      const idx = Number(td.getAttribute('data-cell-idx'));
+      const colName = td.getAttribute('data-cell-col');
+      const colObj = state.columns.find(c => c.name === colName);
+      const currentRaw = state.rawRows[idx]?.[colName] ?? '';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = String(currentRaw);
+      input.className = 'exec-input w-full min-w-[90px] rounded-lg px-2 py-1 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500';
+      td.textContent = '';
+      td.appendChild(input);
+      input.focus();
+      input.select();
+
+      let finished = false;
+      const commit = (save) => {
+        if (finished) return;
+        finished = true;
+        if (save) {
+          const newVal = input.value.trim();
+          if (String(currentRaw) !== newVal) {
+            pushUndo();
+            if (colObj && colObj.type === 'number') {
+              const n = parseSmartNumber(newVal);
+              state.rawRows[idx][colName] = n !== null ? n : (newVal || 0);
+            } else {
+              state.rawRows[idx][colName] = newVal;
+            }
+            saveToMemory();
+            populateCategoryValues();
+            renderDashboard();
+            showToast('Célula atualizada!', 'success', true);
+            return;
+          }
+        }
+        renderTable(getFilteredRows());
+      };
+
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') commit(true);
+        else if (e.key === 'Escape') commit(false);
+      });
+      input.addEventListener('blur', () => commit(true));
+    }
+
+    // ==================== NAVIGATION & EVENTS ====================
+    function switchTab(tab) {
+      const dash = document.getElementById('view-dashboard');
+      const imp = document.getElementById('view-import');
+      const btnDash = document.getElementById('tab-btn-dashboard');
+      const btnImp = document.getElementById('tab-btn-import');
+      const sDash = document.getElementById('side-btn-dashboard');
+      const sImp = document.getElementById('side-btn-import');
+
+      const activeCls = ['bg-sky-500', 'text-slate-950', 'shadow-sm'];
+      const idleCls = ['text-muted-exec'];
+
+      if (tab === 'dashboard') {
+        dash.classList.remove('hidden');
+        imp.classList.add('hidden');
+        [btnDash, sDash].forEach(b => { b.classList.add(...activeCls); b.classList.remove(...idleCls); });
+        [btnImp, sImp].forEach(b => { b.classList.remove(...activeCls); b.classList.add(...idleCls); });
+      } else {
+        dash.classList.add('hidden');
+        imp.classList.remove('hidden');
+        [btnImp, sImp].forEach(b => { b.classList.add(...activeCls); b.classList.remove(...idleCls); });
+        [btnDash, sDash].forEach(b => { b.classList.remove(...activeCls); b.classList.add(...idleCls); });
+      }
+    }
+
+    function readSingleFileAsRows(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        const lower = file.name.toLowerCase();
+        if (lower.endsWith('.csv') || lower.endsWith('.txt') || lower.endsWith('.json')) {
+          reader.onload = e => resolve(parseAnyText(e.target.result));
+          reader.onerror = reject;
+          reader.readAsText(file, 'UTF-8');
+        } else {
+          reader.onload = e => {
+            try {
+              const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+              resolve(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' }));
+            } catch (err) { reject(err); }
+          };
+          reader.onerror = reject;
+          reader.readAsArrayBuffer(file);
+        }
+      });
+    }
+
+    async function handleFilesUpload(fileList) {
+      const files = Array.from(fileList || []);
+      if (!files.length) return;
+      try {
+        let merged = [];
+        for (const f of files) {
+          const rows = await readSingleFileAsRows(f);
+          merged = merged.concat(rows);
+        }
+        const label = files.length > 1 ? `${files.length} arquivos unificados` : files[0].name;
+        loadDataset(label, merged);
+      } catch (err) {
+        showToast('Erro ao ler um dos arquivos enviados.', 'error');
+      }
+    }
+
+    function setupAutoRefresh() {
+      if (state.liveTimer) { clearInterval(state.liveTimer); state.liveTimer = null; }
+      if (state.autoRefresh) {
+        state.liveTimer = setInterval(() => {
+          document.getElementById('sync-badge').textContent = `Ao vivo • ${new Date().toLocaleTimeString('pt-BR')}`;
+        }, 10000);
+      }
+    }
+
+    // ==================== MEMORY, PNG, SUMMARY & MODALS ====================
+    function saveToMemory() {
+      try {
+        const payload = {
+          datasetName: state.datasetName,
+          rawRows: state.rawRows.slice(0, 2000),
+          columns: state.columns,
+          goalValue: state.goalValue,
+          brandName: document.getElementById('brand-title-text').textContent,
+          brandLogo: document.getElementById('brand-logo-img').classList.contains('hidden') ? '' : document.getElementById('brand-logo-img').src
+        };
+        localStorage.setItem('pulsebi_v2_state', JSON.stringify(payload));
+      } catch (e) {}
+    }
+
+    function loadFromMemory() {
+      try {
+        const raw = localStorage.getItem('pulsebi_v2_state');
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data || !data.rawRows || !data.rawRows.length) return false;
+        if (data.brandName) {
+          document.getElementById('brand-title-text').textContent = data.brandName;
+          document.getElementById('input-brand-name').value = data.brandName;
+          document.getElementById('brand-logo-letter').textContent = data.brandName.charAt(0).toUpperCase();
+        }
+        if (data.brandLogo) {
+          const img = document.getElementById('brand-logo-img');
+          img.src = data.brandLogo;
+          img.classList.remove('hidden');
+          document.getElementById('brand-logo-letter').classList.add('hidden');
+        }
+        loadDataset(data.datasetName || 'Dados Salvos', data.rawRows, data.goalValue || null);
+        if (data.columns && data.columns.length === state.columns.length) {
+          state.columns = data.columns;
+          renderSchemaEditor();
+          populateSelectors();
+          renderDashboard();
+        }
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function downloadChartPng(chartKey, filename) {
+      const chart = state.charts[chartKey];
+      if (!chart) return;
+      const srcCanvas = chart.canvas;
+      const tmp = document.createElement('canvas');
+      tmp.width = srcCanvas.width;
+      tmp.height = srcCanvas.height;
+      const ctx = tmp.getContext('2d');
+      ctx.fillStyle = state.theme === 'light' ? '#ffffff' : (state.theme === 'purple' ? '#180e2e' : (state.theme === 'emerald' ? '#08201a' : '#0d152a'));
+      ctx.fillRect(0, 0, tmp.width, tmp.height);
+      ctx.drawImage(srcCanvas, 0, 0);
+      const a = document.createElement('a');
+      a.href = tmp.toDataURL('image/png', 1.0);
+      a.download = filename;
+      a.click();
+      showToast(`Gráfico salvo: ${filename}`, 'success');
+    }
+
+    function chartToDataUrlWithBg(chartKey) {
+      const chart = state.charts[chartKey];
+      if (!chart) return '';
+      const src = chart.canvas;
+      const tmp = document.createElement('canvas');
+      tmp.width = src.width;
+      tmp.height = src.height;
+      const ctx = tmp.getContext('2d');
+      ctx.fillStyle = state.theme === 'light' ? '#ffffff' : (state.theme === 'purple' ? '#180e2e' : (state.theme === 'emerald' ? '#08201a' : '#0d152a'));
+      ctx.fillRect(0, 0, tmp.width, tmp.height);
+      ctx.drawImage(src, 0, 0);
+      return tmp.toDataURL('image/png', 1.0);
+    }
+
+    function buildDiagnosticReportHtml() {
+      const rows = getFilteredRows();
+      const metricColObj = state.columns.find(c => c.name === state.selectedMetric) || { name: state.selectedMetric, type: 'number', isCurrency: false };
+      const isNum = metricColObj.type === 'number';
+      const isCur = metricColObj.isCurrency;
+
+      let sum = 0, emptyOrZero = 0;
+      const grouped = {};
+      const valuesSeq = [];
+      rows.forEach(r => {
+        const cat = String(r[state.selectedCatCol] ?? 'Outros') || 'Outros';
+        const rawVal = r[state.selectedMetric];
+        const v = isNum ? (parseSmartNumber(rawVal) ?? 0) : 1;
+        if (rawVal === '' || rawVal === null || rawVal === undefined || v <= 0) emptyOrZero++;
+        sum += v;
+        valuesSeq.push(v);
+        grouped[cat] = (grouped[cat] || 0) + v;
+      });
+
+      const avg = rows.length ? sum / rows.length : 0;
+      const sortedGroups = Object.entries(grouped).sort((a, b) => b[1] - a[1]);
+      const top10 = sortedGroups.slice(0, 10);
+      const leader = sortedGroups.length ? sortedGroups[0] : ['—', 0];
+      const leaderPct = sum > 0 ? ((leader[1] / sum) * 100) : 0;
+      const groupAvg = sortedGroups.length ? sum / sortedGroups.length : 0;
+      const lowGroups = sortedGroups.filter(g => g[1] < groupAvg).slice(-3).map(g => g[0]);
+
+      const mid = Math.floor(valuesSeq.length / 2);
+      const firstHalf = valuesSeq.slice(0, mid).reduce((a, b) => a + b, 0);
+      const secondHalf = valuesSeq.slice(mid).reduce((a, b) => a + b, 0);
+      const deltaPct = firstHalf > 0 ? (((secondHalf - firstHalf) / firstHalf) * 100) : 0;
+
+      const goal = state.goalValue > 0 ? state.goalValue : 1;
+      const pctMeta = ((sum / goal) * 100).toFixed(1);
+      const gap = goal - sum;
+      const neededRecords = (gap > 0 && avg > 0) ? Math.ceil(gap / avg) : 0;
+
+      const brand = document.getElementById('brand-title-text').textContent;
+      const logoImg = document.getElementById('brand-logo-img');
+      const logoSrc = (!logoImg.classList.contains('hidden') && logoImg.src) ? logoImg.src : '';
+
+      const imgLine = chartToDataUrlWithBg('line');
+      const imgGauge = chartToDataUrlWithBg('gauge');
+      const imgBar = chartToDataUrlWithBg('bar');
+      const imgDough = chartToDataUrlWithBg('doughnut');
+      const imgCompare = chartToDataUrlWithBg('compare');
+
+      // Pain-point diagnostic cards
+      const alerts = [];
+      if (deltaPct < -5) {
+        alerts.push({ tone: 'rose', title: 'Alerta de Queda no Ritmo', text: `O volume caiu ${Math.abs(deltaPct).toFixed(1)}% na segunda metade dos registros em comparação com a primeira. Fique de olho no que freou os resultados recentes e revise ações comerciais ou operacionais.` });
+      } else {
+        alerts.push({ tone: 'emerald', title: 'Ritmo Saudável / Em Alta', text: `A segunda metade do período teve variação de ${deltaPct >= 0 ? '+' : ''}${deltaPct.toFixed(1)}%. Mantenha a estratégia atual nos canais que estão puxando o crescimento.` });
+      }
+
+      if (leaderPct >= 40) {
+        alerts.push({ tone: 'amber', title: 'Risco de Dependência (Concentração)', text: `${leader[0]} concentra sozinho ${leaderPct.toFixed(1)}% de todo o resultado (${formatValue(leader[1], isCur)}). Se esse item, vendedor ou canal falhar, o impacto no caixa será imediato.` });
+      } else {
+        alerts.push({ tone: 'sky', title: 'Distribuição Equilibrada', text: `${leader[0]} lidera com ${leaderPct.toFixed(1)}% do total, sem dependência extrema de um único ponto.` });
+      }
+
+      if (gap > 0) {
+        alerts.push({ tone: 'amber', title: 'O Que Falta para Bater a Meta', text: `Você atingiu ${pctMeta}% da meta. Faltam ${formatValue(gap, isCur)} — no seu ticket médio atual de ${formatValue(avg, isCur)}, você precisa de aproximadamente ${neededRecords} novo(s) lançamento(s) para fechar o objetivo.` });
+      } else {
+        alerts.push({ tone: 'emerald', title: 'Meta Superada!', text: `Parabéns: a meta de ${formatValue(goal, isCur)} foi batida (${pctMeta}%), gerando um excedente de ${formatValue(Math.abs(gap), isCur)}.` });
+      }
+
+      const attentionParts = [];
+      if (lowGroups.length) attentionParts.push(`Grupos abaixo da média (${formatValue(groupAvg, isCur)}): ${lowGroups.join(', ')}.`);
+      if (emptyOrZero > 0) attentionParts.push(`Encontrados ${emptyOrZero} registro(s) com valor zerado ou vazio na coluna ${state.selectedMetric} — vale conferir se houve erro de preenchimento.`);
+      if (!attentionParts.length) attentionParts.push('Nenhuma inconsistência crítica ou célula zerada detectada na base filtrada.');
+      alerts.push({ tone: emptyOrZero > 0 || lowGroups.length ? 'rose' : 'sky', title: 'Pontos de Atenção & Erros na Base', text: attentionParts.join(' ') });
+
+      const stockInfo = detectStockAlerts(rows);
+      if (stockInfo) {
+        if (stockInfo.outOfStock.length || stockInfo.lowStock.length) {
+          const msgParts = [];
+          if (stockInfo.outOfStock.length) msgParts.push(`Zerados (ruptura): ${stockInfo.outOfStock.join(', ')}.`);
+          if (stockInfo.lowStock.length) msgParts.push(`Abaixo do mínimo (${stockInfo.minCol}): ${stockInfo.lowStock.join(', ')}.`);
+          alerts.push({ tone: 'rose', title: 'Alerta de Estoque & Reposição', text: msgParts.join(' ') });
+        } else {
+          alerts.push({ tone: 'emerald', title: 'Estoque Saudável', text: `Todos os itens estão acima da coluna ${stockInfo.minCol}.` });
+        }
+      }
+
+      const comm = detectCommercialMetrics(rows);
+      if (comm) {
+        const commParts = [];
+        if (comm.boxesPerDay !== null) commParts.push(`Caixas/Dia: ${comm.boxesPerDay.toFixed(1)} (${comm.totalBoxes} caixas/unid. no total).`);
+        if (comm.sellerDailyAvg !== null) commParts.push(`Média por Vendedor/Dia: ${formatValue(comm.sellerDailyAvg, comm.isRevCurrency)} (${comm.sellersCount} ativos).`);
+        if (comm.assiduityPct !== null) commParts.push(`Assiduidade de Pagamentos: ${comm.assiduityPct.toFixed(1)}% em dia.`);
+        if (comm.zeroSaleClients.length) commParts.push(`Clientes Sem Venda (${comm.zeroSaleClients.length}): ${comm.zeroSaleClients.join(', ')}.`);
+        if (commParts.length) {
+          alerts.push({
+            tone: comm.zeroSaleClients.length > 0 ? 'amber' : 'sky',
+            title: 'Indicadores Comerciais & Operação (Giro Diário)',
+            text: commParts.join(' ')
+          });
+        }
+      }
+
+      const toneClasses = {
+        rose: 'border-rose-200 bg-rose-50 text-rose-900',
+        amber: 'border-amber-200 bg-amber-50 text-amber-900',
+        emerald: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+        sky: 'border-sky-200 bg-sky-50 text-sky-900'
+      };
+
+      const bodyHtml = `
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-200">
+          <div class="flex items-center gap-3">
+            ${logoSrc ? `<img src="${logoSrc}" alt="Logo" class="w-12 h-12 rounded-xl object-cover border border-slate-200" />` : `<div class="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-extrabold text-xl">${brand.charAt(0).toUpperCase()}</div>`}
+            <div>
+              <h1 class="text-xl font-extrabold text-slate-900">${brand} — Relatório Executivo</h1>
+              <p class="text-xs text-slate-500">Base: ${state.datasetName} • Filtro (${state.selectedCatCol}): ${state.selectedCatVal === '__ALL__' ? 'Todos' : state.selectedCatVal} • ${new Date().toLocaleString('pt-BR')}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-3.5 rounded-xl bg-slate-100 border border-slate-200">
+            <div class="text-[11px] font-bold uppercase text-slate-500">Total (${state.selectedMetric})</div>
+            <div class="text-lg font-extrabold text-slate-900 mt-1">${isNum ? formatValue(sum, isCur) : rows.length}</div>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-100 border border-slate-200">
+            <div class="text-[11px] font-bold uppercase text-slate-500">Média / Ticket</div>
+            <div class="text-lg font-extrabold text-slate-900 mt-1">${isNum ? formatValue(avg, isCur) : '1,0'}</div>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-100 border border-slate-200">
+            <div class="text-[11px] font-bold uppercase text-slate-500">Meta Atingida</div>
+            <div class="text-lg font-extrabold text-slate-900 mt-1">${pctMeta}%</div>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-100 border border-slate-200">
+            <div class="text-[11px] font-bold uppercase text-slate-500">Líder (${state.selectedCatCol})</div>
+            <div class="text-base font-extrabold text-slate-900 mt-1 truncate">${leader[0]}</div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 mb-3">Diagnóstico Mastigado — Onde Focar sua Atenção</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            ${alerts.map(a => `
+              <div class="p-4 rounded-xl border ${toneClasses[a.tone]}">
+                <div class="text-xs font-extrabold uppercase tracking-wide mb-1">${a.title}</div>
+                <p class="text-xs leading-relaxed">${a.text}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 mb-3">Visão Gráfica do Período</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="p-3 rounded-xl border border-slate-200 bg-slate-900 text-white">
+              <div class="text-xs font-bold mb-2">Evolução ao Longo do Tempo</div>
+              <img src="${imgLine}" alt="Evolução" class="w-full rounded-lg" />
+            </div>
+            <div class="p-3 rounded-xl border border-slate-200 bg-slate-900 text-white">
+              <div class="text-xs font-bold mb-2">Meta vs. Realizado (${pctMeta}%)</div>
+              <img src="${imgGauge}" alt="Meta" class="w-full rounded-lg" />
+            </div>
+            <div class="p-3 rounded-xl border border-slate-200 bg-slate-900 text-white">
+              <div class="text-xs font-bold mb-2">Ranking Top 10</div>
+              <img src="${imgBar}" alt="Ranking" class="w-full rounded-lg" />
+            </div>
+            <div class="p-3 rounded-xl border border-slate-200 bg-slate-900 text-white">
+              <div class="text-xs font-bold mb-2">Participação (%)</div>
+              <img src="${imgDough}" alt="Participação" class="w-full rounded-lg" />
+            </div>
+            <div class="sm:col-span-2 p-3 rounded-xl border border-slate-200 bg-slate-900 text-white">
+              <div class="text-xs font-bold mb-2">Comparativo de Períodos (Atual vs. Anterior)</div>
+              <img src="${imgCompare}" alt="Comparativo" class="w-full rounded-lg" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-extrabold uppercase tracking-wider text-slate-700 mb-3">Detalhamento Top 10 por ${state.selectedCatCol}</h2>
+          <table class="w-full text-left border-collapse text-xs border border-slate-200">
+            <thead class="bg-slate-100 text-slate-600 uppercase">
+              <tr>
+                <th class="p-2.5 border-b border-slate-200">#</th>
+                <th class="p-2.5 border-b border-slate-200">${state.selectedCatCol}</th>
+                <th class="p-2.5 border-b border-slate-200 text-right">${state.selectedMetric}</th>
+                <th class="p-2.5 border-b border-slate-200 text-right">Participação</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${top10.map((item, idx) => {
+                const p = sum > 0 ? ((item[1] / sum) * 100).toFixed(1) : '0.0';
+                return `<tr class="border-b border-slate-100"><td class="p-2.5 font-bold">${idx + 1}</td><td class="p-2.5 font-semibold">${item[0]}</td><td class="p-2.5 text-right">${formatValue(item[1], isCur)}</td><td class="p-2.5 text-right font-bold">${p}%</td></tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-5 rounded-2xl bg-slate-900 text-white space-y-3 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-extrabold uppercase tracking-wider text-sky-400">Fechamento Executivo para Liderança &amp; Diretoria</h2>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">Pronto para Compartilhar</span>
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Resumo consolidado da operação <strong>${state.datasetName}</strong>: o volume acumulado atingiu <strong>${isNum ? formatValue(sum, isCur) : rows.length}</strong> (${pctMeta}% da meta mensal de ${formatValue(goal, isCur)}, equivalente a uma <strong>Meta / Semana de ${formatValue(goal / 4, isCur)}</strong>). O segmento líder em <em>${state.selectedCatCol}</em> é <strong>${leader[0]}</strong> (${leaderPct.toFixed(1)}%).
+            ${comm && comm.boxesPerDay !== null ? ` O giro físico registrou <strong>${comm.boxesPerDay.toFixed(1)} caixas/dia</strong> (${comm.totalBoxes} no período)` : ''}${comm && comm.sellerDailyAvg !== null ? `, com produtividade média de <strong>${formatValue(comm.sellerDailyAvg, comm.isRevCurrency)} por vendedor/dia</strong>` : ''}${comm && comm.assiduityPct !== null ? ` e <strong>${comm.assiduityPct.toFixed(1)}% de assiduidade de pagamentos</strong>` : ''}.${comm && comm.zeroSaleClients.length ? ` Atenção prioritária na positivação dos <strong>${comm.zeroSaleClients.length} cliente(s) sem venda</strong> (${comm.zeroSaleClients.join(', ')}).` : ''}
+          </p>
+        </div>
+      `;
+      return bodyHtml;
+    }
+
+    function downloadExecutiveSummary() {
+      const bodyHtml = buildDiagnosticReportHtml();
+      document.getElementById('report-preview-body').innerHTML = bodyHtml;
+      document.getElementById('modal-report').classList.remove('hidden');
+    }
+
+    document.getElementById('btn-close-report').addEventListener('click', () => document.getElementById('modal-report').classList.add('hidden'));
+    document.getElementById('btn-print-report').addEventListener('click', () => {
+      const html = document.getElementById('report-preview-body').innerHTML;
+      const win = window.open('', '_blank', 'width=960,height=800');
+      if (win) {
+        win.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório Executivo</title><script src="https://cdn.tailwindcss.com/3.4.17"><\/script></head><body class="bg-white p-6">' + html + '<script>window.onload=function(){setTimeout(function(){window.print();},400);};<\/script></body></html>');
+        win.document.close();
+      } else {
+        document.getElementById('modal-report').classList.add('hidden');
+        window.print();
+      }
+    });
+
+    function buildWhatsappSummaryText() {
+      const rows = getFilteredRows();
+      const metricColObj = state.columns.find(c => c.name === state.selectedMetric) || { name: state.selectedMetric, type: 'number', isCurrency: false };
+      const isNum = metricColObj.type === 'number';
+      const isCur = metricColObj.isCurrency;
+
+      let sum = 0, emptyOrZero = 0;
+      const grouped = {};
+      const valuesSeq = [];
+      rows.forEach(r => {
+        const cat = String(r[state.selectedCatCol] ?? 'Outros') || 'Outros';
+        const rawVal = r[state.selectedMetric];
+        const v = isNum ? (parseSmartNumber(rawVal) ?? 0) : 1;
+        if (rawVal === '' || rawVal === null || rawVal === undefined || v <= 0) emptyOrZero++;
+        sum += v;
+        valuesSeq.push(v);
+        grouped[cat] = (grouped[cat] || 0) + v;
+      });
+
+      const avg = rows.length ? sum / rows.length : 0;
+      const sortedGroups = Object.entries(grouped).sort((a, b) => b[1] - a[1]);
+      const top3 = sortedGroups.slice(0, 3);
+      const leader = sortedGroups.length ? sortedGroups[0] : ['—', 0];
+      const leaderPct = sum > 0 ? ((leader[1] / sum) * 100).toFixed(1) : '0.0';
+      const groupAvg = sortedGroups.length ? sum / sortedGroups.length : 0;
+      const lowGroups = sortedGroups.filter(g => g[1] < groupAvg).slice(-3).map(g => g[0]);
+
+      const mid = Math.floor(valuesSeq.length / 2);
+      const firstHalf = valuesSeq.slice(0, mid).reduce((a, b) => a + b, 0);
+      const secondHalf = valuesSeq.slice(mid).reduce((a, b) => a + b, 0);
+      const deltaPct = firstHalf > 0 ? (((secondHalf - firstHalf) / firstHalf) * 100) : 0;
+
+      const goal = state.goalValue > 0 ? state.goalValue : 1;
+      const pctMeta = ((sum / goal) * 100).toFixed(1);
+      const gap = goal - sum;
+      const neededRecords = (gap > 0 && avg > 0) ? Math.ceil(gap / avg) : 0;
+      const brand = document.getElementById('brand-title-text').textContent;
+      const comm = detectCommercialMetrics(rows);
+      const stockInfo = detectStockAlerts(rows);
+      const filterTag = state.selectedCatVal === '__ALL__' ? 'Todos' : state.selectedCatVal;
+
+      const lines = [
+        `📊 *${brand.toUpperCase()} — RELATÓRIO EXECUTIVO*`,
+        `📁 *Base:* ${state.datasetName} | *Filtro:* ${filterTag} (${rows.length} reg.)`,
+        `🗓️ *Data:* ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+        `──────────────────────`,
+        `💰 *RESULTADOS PRINCIPAIS:*`,
+        `• *Total (${state.selectedMetric}):* ${isNum ? formatValue(sum, isCur) : rows.length}`,
+        `• *Meta Atingida:* ${pctMeta}% (Meta: ${formatValue(goal, isCur)})`,
+        `• *Meta / Semana:* ${formatValue(goal / 4, isCur)}`,
+        `• *Ticket / Média:* ${isNum ? formatValue(avg, isCur) : '1,0'}`,
+        `• *Tendência do Período:* ${deltaPct >= 0 ? '📈 Alta de +' : '📉 Queda de '}${deltaPct.toFixed(1)}%`
+      ];
+
+      if (top3.length) {
+        lines.push(`──────────────────────`);
+        lines.push(`🏆 *TOP 3 POR ${state.selectedCatCol.toUpperCase()}:*`);
+        top3.forEach((item, i) => {
+          const p = sum > 0 ? ((item[1] / sum) * 100).toFixed(1) : '0.0';
+          const medal = i === 0 ? '1º' : i === 1 ? '2º' : '3º';
+          lines.push(`${medal} *${item[0]}:* ${formatValue(item[1], isCur)} (${p}%)`);
+        });
+      }
+
+      if (comm) {
+        const cItems = [];
+        if (comm.boxesPerDay !== null) cItems.push(`• *Caixas/Dia:* ${comm.boxesPerDay.toFixed(1)} (${comm.totalBoxes} total)`);
+        if (comm.sellerDailyAvg !== null) cItems.push(`• *Média Vendedor/Dia:* ${formatValue(comm.sellerDailyAvg, comm.isRevCurrency)}`);
+        if (comm.assiduityPct !== null) cItems.push(`• *Assiduidade Pagamentos:* ${comm.assiduityPct.toFixed(1)}% em dia`);
+        if (cItems.length) {
+          lines.push(`──────────────────────`);
+          lines.push(`⚙️ *GIRO & PRODUTIVIDADE:*`);
+          lines.push(...cItems);
+        }
+      }
+
+      lines.push(`──────────────────────`);
+      lines.push(`🎯 *PLANO DE AÇÃO IMEDIATO (ONDE AGIR AGORA):*`);
+      if (gap > 0) {
+        lines.push(`1️⃣ *Meta:* Faltam *${formatValue(gap, isCur)}* (~${neededRecords} lançamento(s) no ticket médio atual) para bater o objetivo.`);
+      } else {
+        lines.push(`1️⃣ *Meta:* Objetivo batido com *${formatValue(Math.abs(gap), isCur)}* acima da meta! Manter ritmo.`);
+      }
+
+      if (comm && comm.zeroSaleClients.length > 0) {
+        lines.push(`2️⃣ *Positivação Urgente:* Cobrar/visitar *${comm.zeroSaleClients.length} cliente(s) sem venda*: ${comm.zeroSaleClients.join(', ')}.`);
+      } else if (lowGroups.length > 0) {
+        lines.push(`2️⃣ *Atenção nos Grupos Abaixo da Média:* Reforçar ação em *${lowGroups.join(', ')}*.`);
+      } else {
+        lines.push(`2️⃣ *Carteira Ativa:* Nenhum cliente zerado ou grupo crítico na base filtrada.`);
+      }
+
+      if (stockInfo && (stockInfo.outOfStock.length || stockInfo.lowStock.length)) {
+        const sAlerts = [];
+        if (stockInfo.outOfStock.length) sAlerts.push(`Zerados: ${stockInfo.outOfStock.join(', ')}`);
+        if (stockInfo.lowStock.length) sAlerts.push(`Baixo: ${stockInfo.lowStock.join(', ')}`);
+        lines.push(`3️⃣ *Reposição de Estoque:* ${sAlerts.join(' | ')}.`);
+      } else if (emptyOrZero > 0) {
+        lines.push(`3️⃣ *Conferência de Base:* Revisar *${emptyOrZero} registro(s)* com valor zerado/vazio.`);
+      } else {
+        lines.push(`3️⃣ *Destaque Líder:* *${leader[0]}* puxa ${leaderPct}% do resultado — replicar estratégia.`);
+      }
+
+      lines.push(`──────────────────────`);
+      lines.push(`💡 _Dica: Baixe também o Card Visual (PNG) ou PDF no painel para anexar junto._`);
+      lines.push(`⚡ _Gerado em segundos pelo ${brand}_`);
+      return lines.join('\n');
+    }
+
+    function downloadWhatsappVisualCard() {
+      const rows = getFilteredRows();
+      const metricColObj = state.columns.find(c => c.name === state.selectedMetric) || { name: state.selectedMetric, type: 'number', isCurrency: false };
+      const isNum = metricColObj.type === 'number';
+      const isCur = metricColObj.isCurrency;
+
+      let sum = 0;
+      const grouped = {};
+      rows.forEach(r => {
+        const cat = String(r[state.selectedCatCol] ?? 'Outros') || 'Outros';
+        const v = isNum ? (parseSmartNumber(r[state.selectedMetric]) ?? 0) : 1;
+        sum += v;
+        grouped[cat] = (grouped[cat] || 0) + v;
+      });
+      const avg = rows.length ? sum / rows.length : 0;
+      const sortedGroups = Object.entries(grouped).sort((a, b) => b[1] - a[1]);
+      const leader = sortedGroups.length ? sortedGroups[0] : ['—', 0];
+      const leaderPct = sum > 0 ? ((leader[1] / sum) * 100).toFixed(1) : '0.0';
+      const goal = state.goalValue > 0 ? state.goalValue : 1;
+      const pctMeta = ((sum / goal) * 100).toFixed(1);
+      const brand = document.getElementById('brand-title-text').textContent;
+
+      const W = 1080, H = 1350;
+      const cv = document.createElement('canvas');
+      cv.width = W; cv.height = H;
+      const ctx = cv.getContext('2d');
+
+      // Background gradient
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#060b19');
+      bg.addColorStop(1, '#0f172a');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      // Top Header Bar
+      ctx.fillStyle = '#0ea5e9';
+      ctx.fillRect(0, 0, W, 12);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 24px Inter, sans-serif';
+      ctx.fillText(brand.toUpperCase() + ' • RESUMO EXECUTIVO', 60, 72);
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '800 40px Inter, sans-serif';
+      ctx.fillText(state.datasetName.slice(0, 34), 60, 126);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 22px Inter, sans-serif';
+      ctx.fillText(`Gerado em ${new Date().toLocaleDateString('pt-BR')} • ${rows.length} registros analisados`, 60, 166);
+
+      // 4 KPI Cards
+      const kpis = [
+        { label: `TOTAL (${state.selectedMetric.toUpperCase()})`, val: isNum ? formatValue(sum, isCur) : String(rows.length), color: '#38bdf8' },
+        { label: 'META ATINGIDA', val: `${pctMeta}%`, color: Number(pctMeta) >= 100 ? '#10b981' : '#f59e0b' },
+        { label: 'TICKET / MÉDIA', val: isNum ? formatValue(avg, isCur) : '1,0', color: '#a78bfa' },
+        { label: `LÍDER (${state.selectedCatCol.toUpperCase()})`, val: `${leader[0].slice(0, 18)} (${leaderPct}%)`, color: '#10b981' }
+      ];
+
+      kpis.forEach((k, idx) => {
+        const col = idx % 2;
+        const row = Math.floor(idx / 2);
+        const x = 60 + col * 490;
+        const y = 210 + row * 165;
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
+        ctx.beginPath();
+        ctx.roundRect(x, y, 470, 145, 20);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = 'bold 19px Inter, sans-serif';
+        ctx.fillText(k.label.slice(0, 28), x + 28, y + 48);
+
+        ctx.fillStyle = k.color;
+        ctx.font = '800 34px Inter, sans-serif';
+        ctx.fillText(k.val, x + 28, y + 104);
+      });
+
+      // Embed Evolution & Top 10 Charts side-by-side
+      const chartY = 570;
+      const chartBoxW = 470, chartBoxH = 440;
+      const chartPairs = [
+        { key: 'line', title: 'EVOLUÇÃO NO PERÍODO', x: 60 },
+        { key: 'bar', title: 'RANKING TOP 10', x: 550 }
+      ];
+      chartPairs.forEach(cp => {
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+        ctx.beginPath();
+        ctx.roundRect(cp.x, chartY, chartBoxW, chartBoxH, 20);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
+        ctx.stroke();
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 20px Inter, sans-serif';
+        ctx.fillText(cp.title, cp.x + 24, chartY + 42);
+
+        const cObj = state.charts[cp.key];
+        if (cObj && cObj.canvas) {
+          ctx.drawImage(cObj.canvas, cp.x + 20, chartY + 62, chartBoxW - 40, chartBoxH - 82);
+        }
+      });
+
+      // Bottom Action Box
+      const actY = 1045;
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+      ctx.beginPath();
+      ctx.roundRect(60, actY, 960, 210, 20);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+      ctx.stroke();
+
+      ctx.fillStyle = '#34d399';
+      ctx.font = '800 22px Inter, sans-serif';
+      ctx.fillText('🎯 SÍNTESE & PRÓXIMO PASSO', 90, actY + 46);
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = '500 23px Inter, sans-serif';
+      const gap = goal - sum;
+      const line1 = gap > 0
+        ? `• Faltam ${formatValue(gap, isCur)} para bater a meta mensal (Meta/Semana: ${formatValue(goal / 4, isCur)}).`
+        : `• Meta mensal superada em ${formatValue(Math.abs(gap), isCur)}! Excelente ritmo de operação.`;
+      const line2 = `• Destaque principal: ${leader[0]} representa ${leaderPct}% do volume total.`;
+      ctx.fillText(line1.slice(0, 74), 90, actY + 96);
+      ctx.fillText(line2.slice(0, 74), 90, actY + 142);
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '600 18px Inter, sans-serif';
+      ctx.fillText(`Gerado instantaneamente pelo ${brand} • Inteligência Executiva Universal`, 60, 1305);
+
+      const a = document.createElement('a');
+      a.href = cv.toDataURL('image/png', 1.0);
+      a.download = 'card_executivo_whatsapp.png';
+      a.click();
+      showToast('Card Visual PNG baixado! Pronto para anexar no WhatsApp.', 'success');
+    }
+
+    document.getElementById('btn-copy-whatsapp').addEventListener('click', async () => {
+      const txt = buildWhatsappSummaryText();
+      try {
+        await navigator.clipboard.writeText(txt);
+        showToast('Resumo completo copiado! Cole direto no WhatsApp.', 'success');
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        showToast('Resumo completo copiado! Cole direto no WhatsApp.', 'success');
+      }
+    });
+
+    document.getElementById('btn-open-whatsapp').addEventListener('click', async () => {
+      const txt = buildWhatsappSummaryText();
+      try { await navigator.clipboard.writeText(txt); } catch (e) {}
+      const url = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(txt);
+      window.open(url, '_blank', 'noopener');
+      showToast('Abrindo WhatsApp com o resumo preenchido!', 'success');
+    });
+
+    document.getElementById('btn-dl-whatsapp-card').addEventListener('click', () => {
+      downloadWhatsappVisualCard();
+    });
+
+
+    document.getElementById('btn-dl-report-html').addEventListener('click', () => {
+      const bodyHtml = document.getElementById('report-preview-body').innerHTML;
+      const fullDoc = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Relatório Executivo</title><script src="https://cdn.tailwindcss.com/3.4.17"><\/script></head><body class="bg-slate-100 p-4 sm:p-8"><div class="max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-lg space-y-6">' + bodyHtml + '</div></body></html>';
+      const blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'relatorio_executivo_completo.html';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Relatório visual completo baixado!', 'success');
+    });
+
+    let editingRowIdx = null;
+    let watchedDirHandle = null;
+    let folderWatchTimer = null;
+    let lastWatchedStamp = '';
+
+    function openRowModal(idx = null) {
+      editingRowIdx = idx;
+      const isEdit = idx !== null && idx >= 0 && idx < state.rawRows.length;
+      document.getElementById('modal-row-title').textContent = isEdit ? 'Editar Lançamento' : 'Novo Lançamento';
+      const fieldsContainer = document.getElementById('modal-row-fields');
+      const existing = isEdit ? state.rawRows[idx] : {};
+
+      fieldsContainer.innerHTML = state.columns.map((c, i) => {
+        const val = existing[c.name] !== undefined ? String(existing[c.name]) : '';
+        const placeholder = c.type === 'date' ? 'DD/MM/AAAA' : (c.type === 'number' ? '0,00' : 'Digite aqui...');
+        return `
+          <div>
+            <label for="row-field-${i}" class="block text-[11px] font-semibold uppercase tracking-wider text-muted-exec mb-1">${c.name}</label>
+            <input id="row-field-${i}" data-col-name="${c.name}" type="text" value="${val.replace(/"/g, '&quot;')}" placeholder="${placeholder}" class="exec-input w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500" />
+          </div>
+        `;
+      }).join('');
+      document.getElementById('modal-row').classList.remove('hidden');
+    }
+
+    function saveRowModal() {
+      pushUndo();
+      const obj = {};
+      state.columns.forEach((c, i) => {
+        const inp = document.getElementById(`row-field-${i}`);
+        let v = inp ? inp.value.trim() : '';
+        if (c.type === 'number') {
+          const parsed = parseSmartNumber(v);
+          obj[c.name] = parsed !== null ? parsed : (v || 0);
+        } else {
+          obj[c.name] = v;
+        }
+      });
+      if (editingRowIdx !== null && editingRowIdx >= 0 && editingRowIdx < state.rawRows.length) {
+        state.rawRows[editingRowIdx] = obj;
+        showToast('Registro atualizado!', 'success', true);
+      } else {
+        state.rawRows.unshift(obj);
+        showToast('Novo lançamento adicionado!', 'success', true);
+      }
+      document.getElementById('modal-row').classList.add('hidden');
+      document.getElementById('dataset-subtitle').textContent = `${state.datasetName} • ${state.rawRows.length} registros`;
+      saveToMemory();
+      populateCategoryValues();
+      renderDashboard();
+    }
+
+    function deleteRowByIdx(idx) {
+      if (idx < 0 || idx >= state.rawRows.length) return;
+      pushUndo();
+      state.rawRows.splice(idx, 1);
+      document.getElementById('dataset-subtitle').textContent = `${state.datasetName} • ${state.rawRows.length} registros`;
+      saveToMemory();
+      populateCategoryValues();
+      renderDashboard();
+      showToast('Registro removido.', 'info', true);
+    }
+
+    async function pollWatchedFolder() {
+      if (!watchedDirHandle) return;
+      try {
+        let newestFile = null;
+        let newestTime = 0;
+        for await (const entry of watchedDirHandle.values()) {
+          if (entry.kind === 'file' && /\.(xlsx|xls|csv|json|txt)$/i.test(entry.name)) {
+            const f = await entry.getFile();
+            if (f.lastModified > newestTime) { newestTime = f.lastModified; newestFile = f; }
+          }
+        }
+        if (newestFile) {
+          const stamp = `${newestFile.name}_${newestTime}`;
+          if (stamp !== lastWatchedStamp) {
+            lastWatchedStamp = stamp;
+            handleFilesUpload([newestFile]);
+          }
+        }
+      } catch (e) {}
+    }
+
+    function setTvMode(enabled) {
+      const sidebar = document.getElementById('app-sidebar');
+      const header = document.getElementById('app-header');
+      const filters = document.getElementById('filters-panel');
+      const exitBtn = document.getElementById('btn-exit-tv');
+      if (enabled) {
+        switchTab('dashboard');
+        sidebar.classList.add('lg:hidden');
+        header.classList.add('hidden');
+        filters.classList.add('hidden');
+        exitBtn.classList.remove('hidden');
+        try { document.documentElement.requestFullscreen?.(); } catch (e) {}
+      } else {
+        sidebar.classList.remove('lg:hidden');
+        header.classList.remove('hidden');
+        filters.classList.remove('hidden');
+        exitBtn.classList.add('hidden');
+        try { if (document.fullscreenElement) document.exitFullscreen?.(); } catch (e) {}
+      }
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    document.getElementById('tab-btn-dashboard').addEventListener('click', () => switchTab('dashboard'));
+    document.getElementById('tab-btn-import').addEventListener('click', () => switchTab('import'));
+    document.getElementById('side-btn-dashboard').addEventListener('click', () => switchTab('dashboard'));
+    document.getElementById('side-btn-import').addEventListener('click', () => switchTab('import'));
+    document.getElementById('side-btn-brand').addEventListener('click', () => document.getElementById('modal-brand').classList.remove('hidden'));
+    document.getElementById('side-btn-tv').addEventListener('click', () => setTvMode(true));
+
+    document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+      const sb = document.getElementById('app-sidebar');
+      const collapsed = sb.classList.toggle('w-60');
+      sb.classList.toggle('w-20', collapsed);
+      sb.querySelectorAll('.sidebar-label').forEach(el => el.classList.toggle('hidden', collapsed));
+    });
+
+    document.getElementById('btn-tv-mode').addEventListener('click', () => setTvMode(true));
+    document.getElementById('btn-exit-tv').addEventListener('click', () => setTvMode(false));
+
+    document.getElementById('btn-theme').addEventListener('click', () => applyTheme(state.theme === 'light' ? 'navy' : 'light'));
+    document.getElementById('btn-print').addEventListener('click', () => window.print());
+    document.getElementById('btn-download-summary').addEventListener('click', downloadExecutiveSummary);
+
+    document.getElementById('btn-live-toggle').addEventListener('click', () => {
+      state.autoRefresh = !state.autoRefresh;
+      document.getElementById('live-status-text').textContent = state.autoRefresh ? 'Auto: ON' : 'Auto: OFF';
+      document.getElementById('live-dot').classList.toggle('animate-pulse', state.autoRefresh);
+      setupAutoRefresh();
+      showToast(state.autoRefresh ? 'Atualização automática ativada!' : 'Atualização automática pausada.');
+    });
+
+    document.querySelectorAll('.line-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.lineMode = btn.getAttribute('data-line-mode');
+        document.querySelectorAll('.line-mode-btn').forEach(b => {
+          const active = b === btn;
+          b.className = `line-mode-btn px-2 py-1 rounded-md ${active ? 'bg-sky-500 text-slate-950' : 'text-muted-exec'}`;
+        });
+        renderDashboard();
+      });
+    });
+
+    const modalBrand = document.getElementById('modal-brand');
+    document.getElementById('btn-open-brand').addEventListener('click', () => modalBrand.classList.remove('hidden'));
+    document.getElementById('btn-close-brand').addEventListener('click', () => modalBrand.classList.add('hidden'));
+    document.getElementById('btn-save-brand').addEventListener('click', () => {
+      const name = document.getElementById('input-brand-name').value.trim() || 'PulseBI';
+      document.getElementById('brand-title-text').textContent = name;
+      document.getElementById('brand-logo-letter').textContent = name.charAt(0).toUpperCase();
+      modalBrand.classList.add('hidden');
+      saveToMemory();
+      showToast('Personalização aplicada!', 'success');
+    });
+
+    document.querySelectorAll('.theme-pick-btn').forEach(btn => {
+      btn.addEventListener('click', () => applyTheme(btn.getAttribute('data-theme-pick')));
+    });
+
+    document.getElementById('btn-upload-logo').addEventListener('click', () => document.getElementById('input-brand-logo').click());
+    document.getElementById('input-brand-logo').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = document.getElementById('brand-logo-img');
+        img.src = ev.target.result;
+        img.classList.remove('hidden');
+        document.getElementById('brand-logo-letter').classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+    document.getElementById('btn-remove-logo').addEventListener('click', () => {
+      document.getElementById('brand-logo-img').classList.add('hidden');
+      document.getElementById('brand-logo-letter').classList.remove('hidden');
+    });
+
+    document.getElementById('select-metric').addEventListener('change', e => { state.selectedMetric = e.target.value; renderDashboard(); });
+    document.getElementById('select-category-col').addEventListener('change', e => {
+      state.selectedCatCol = e.target.value;
+      state.selectedCatVal = '__ALL__';
+      populateCategoryValues();
+      state.page = 1;
+      renderDashboard();
+    });
+    document.getElementById('select-category-val').addEventListener('change', e => {
+      state.selectedCatVal = e.target.value;
+      const unique = [...new Set(state.rawRows.map(r => String(r[state.selectedCatCol] ?? '')).filter(Boolean))].sort();
+      renderSlicerPills(unique);
+      state.page = 1;
+      renderDashboard();
+    });
+    document.getElementById('input-search').addEventListener('input', e => { state.searchQuery = e.target.value.trim(); state.page = 1; renderDashboard(); });
+    document.getElementById('input-goal').addEventListener('input', e => {
+      const val = Number(e.target.value);
+      if (!isNaN(val) && val > 0) { state.goalValue = val; saveToMemory(); renderDashboard(); }
+    });
+    document.getElementById('select-agg-mode').addEventListener('change', e => {
+      state.aggMode = e.target.value;
+      renderDashboard();
+    });
+    document.getElementById('input-date-from').addEventListener('change', e => {
+      state.dateFrom = e.target.value;
+      state.page = 1;
+      renderDashboard();
+    });
+    document.getElementById('input-date-to').addEventListener('change', e => {
+      state.dateTo = e.target.value;
+      state.page = 1;
+      renderDashboard();
+    });
+
+    document.getElementById('btn-reset-filters').addEventListener('click', () => {
+      state.selectedCatVal = '__ALL__';
+      state.searchQuery = '';
+      state.aggMode = 'sum';
+      state.dateFrom = '';
+      state.dateTo = '';
+      state.page = 1;
+      document.getElementById('select-category-val').value = '__ALL__';
+      document.getElementById('input-search').value = '';
+      document.getElementById('select-agg-mode').value = 'sum';
+      document.getElementById('input-date-from').value = '';
+      document.getElementById('input-date-to').value = '';
+      const unique = [...new Set(state.rawRows.map(r => String(r[state.selectedCatCol] ?? '')).filter(Boolean))].sort();
+      renderSlicerPills(unique);
+      renderDashboard();
+    });
+
+    document.getElementById('btn-prev-page').addEventListener('click', () => { if (state.page > 1) { state.page--; renderTable(getFilteredRows()); } });
+    document.getElementById('btn-next-page').addEventListener('click', () => { state.page++; renderTable(getFilteredRows()); });
+
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => handleFilesUpload(e.target.files));
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('border-sky-400'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-sky-400'));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('border-sky-400'); handleFilesUpload(e.dataTransfer.files); });
+
+    document.getElementById('btn-load-gsheet').addEventListener('click', async () => {
+      const url = document.getElementById('input-gsheet-url').value.trim();
+      if (!url) { showToast('Cole o link CSV do Google Sheets.', 'error'); return; }
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        loadDataset('Google Sheets (Online)', parseAnyText(text));
+      } catch (e) {
+        showToast('Não foi possível acessar esse link. Verifique se a planilha está publicada como CSV público.', 'error');
+      }
+    });
+
+    document.getElementById('btn-process-paste').addEventListener('click', () => {
+      const txt = document.getElementById('paste-area').value.trim();
+      if (!txt) { showToast('Cole alguns dados antes de gerar.', 'error'); return; }
+      loadDataset('Dados Colados (Ctrl+V)', parseAnyText(txt));
+    });
+
+    document.getElementById('btn-sample-bebidas').addEventListener('click', () => loadDataset(SAMPLES.bebidas.name, SAMPLES.bebidas.rows, SAMPLES.bebidas.goal));
+    document.getElementById('btn-sample-picking').addEventListener('click', () => loadDataset(SAMPLES.picking.name, SAMPLES.picking.rows, SAMPLES.picking.goal));
+    document.getElementById('btn-sample-rh').addEventListener('click', () => loadDataset(SAMPLES.rh.name, SAMPLES.rh.rows, SAMPLES.rh.goal));
+    document.getElementById('btn-sample-vendas').addEventListener('click', () => loadDataset(SAMPLES.vendas.name, SAMPLES.vendas.rows, SAMPLES.vendas.goal));
+    document.getElementById('btn-sample-clinica').addEventListener('click', () => loadDataset(SAMPLES.clinica.name, SAMPLES.clinica.rows, SAMPLES.clinica.goal));
+    document.getElementById('btn-sample-academia').addEventListener('click', () => loadDataset(SAMPLES.academia.name, SAMPLES.academia.rows, SAMPLES.academia.goal));
+    document.getElementById('btn-sample-logistica').addEventListener('click', () => loadDataset(SAMPLES.logistica.name, SAMPLES.logistica.rows, SAMPLES.logistica.goal));
+    document.getElementById('btn-sample-financeiro').addEventListener('click', () => loadDataset(SAMPLES.financeiro.name, SAMPLES.financeiro.rows, SAMPLES.financeiro.goal));
+    document.getElementById('btn-sample-estoque').addEventListener('click', () => loadDataset(SAMPLES.estoque.name, SAMPLES.estoque.rows, SAMPLES.estoque.goal));
+
+    document.getElementById('btn-apply-schema').addEventListener('click', () => {
+      document.querySelectorAll('.schema-type-select').forEach(sel => {
+        const idx = Number(sel.getAttribute('data-col-idx'));
+        const v = sel.value;
+        if (v === 'currency') { state.columns[idx].type = 'number'; state.columns[idx].isCurrency = true; }
+        else if (v === 'number') { state.columns[idx].type = 'number'; state.columns[idx].isCurrency = false; }
+        else { state.columns[idx].type = v; state.columns[idx].isCurrency = false; }
+      });
+      populateSelectors();
+      renderDashboard();
+      switchTab('dashboard');
+      saveToMemory();
+      showToast('Tipos de colunas atualizados!', 'success');
+    });
+
+    document.getElementById('btn-export-xlsx').addEventListener('click', () => {
+      const rows = getFilteredRows();
+      if (!rows.length) {
+        showToast('Nenhum registro para exportar.', 'error');
+        return;
+      }
+      try {
+        const cleanRows = rows.map(r => {
+          const obj = {};
+          state.columns.forEach(c => { obj[c.name] = r[c.name] ?? ''; });
+          return obj;
+        });
+        const ws = XLSX.utils.json_to_sheet(cleanRows);
+        ws['!cols'] = state.columns.map(c => ({ wch: Math.max(14, c.name.length + 5) }));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Dashboard_Dados');
+        XLSX.writeFile(wb, 'dashboard_executivo.xlsx');
+        showToast('Planilha Excel (.xlsx) exportada!', 'success');
+      } catch (e) {
+        showToast('Erro ao exportar Excel.', 'error');
+      }
+    });
+
+    document.getElementById('btn-export-csv').addEventListener('click', () => {
+      const rows = getFilteredRows();
+      if (!rows.length) return;
+      const headers = state.columns.map(c => c.name);
+      const csv = [
+        headers.join(';'),
+        ...rows.map(r => headers.map(h => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(';'))
+      ].join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dashboard_executivo.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('CSV exportado!', 'success');
+    });
+
+    document.getElementById('btn-dl-line').addEventListener('click', () => downloadChartPng('line', 'grafico_evolucao.png'));
+    document.getElementById('btn-dl-gauge').addEventListener('click', () => downloadChartPng('gauge', 'grafico_meta.png'));
+    document.getElementById('btn-dl-bar').addEventListener('click', () => downloadChartPng('bar', 'grafico_ranking_top10.png'));
+    document.getElementById('btn-dl-doughnut').addEventListener('click', () => downloadChartPng('doughnut', 'grafico_participacao.png'));
+    document.getElementById('btn-dl-compare').addEventListener('click', () => downloadChartPng('compare', 'grafico_comparativo.png'));
+    document.getElementById('select-compare-mode').addEventListener('change', e => { state.compareMode = e.target.value; renderDashboard(); });
+
+    document.getElementById('btn-clear-memory').addEventListener('click', () => {
+      try { localStorage.removeItem('pulsebi_v2_state'); } catch (e) {}
+      loadDataset(SAMPLES.vendas.name, SAMPLES.vendas.rows, SAMPLES.vendas.goal);
+      showToast('Memória limpa e exemplo padrão restaurado.');
+    });
+
+    document.getElementById('btn-new-row').addEventListener('click', () => openRowModal(null));
+    document.getElementById('btn-close-row').addEventListener('click', () => document.getElementById('modal-row').classList.add('hidden'));
+    document.getElementById('btn-cancel-row').addEventListener('click', () => document.getElementById('modal-row').classList.add('hidden'));
+    document.getElementById('btn-save-row').addEventListener('click', saveRowModal);
+
+    document.getElementById('btn-watch-folder').addEventListener('click', async () => {
+      if (typeof window.showDirectoryPicker !== 'function') {
+        showToast('Seu navegador não suporta leitura direta de pastas.', 'error');
+        return;
+      }
+      try {
+        watchedDirHandle = await window.showDirectoryPicker();
+        if (folderWatchTimer) clearInterval(folderWatchTimer);
+        await pollWatchedFolder();
+        folderWatchTimer = setInterval(pollWatchedFolder, 10000);
+        showToast('Pasta conectada! Monitorando novos arquivos a cada 10s.', 'success');
+      } catch (err) {
+        showToast('Acesso à pasta bloqueado nesta visualização. Abra o arquivo HTML direto no Chrome/Edge do seu PC.', 'info');
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        if (state.undoStack.length) { e.preventDefault(); undoLastChange(); }
+      }
+    });
+
+    // Boot
+    try {
+      const savedTheme = localStorage.getItem('pulsebi_v2_theme');
+      if (savedTheme) state.theme = savedTheme;
+    } catch (e) {}
+    applyTheme(state.theme);
+    setupAutoRefresh();
+    if (!loadFromMemory()) {
+      loadDataset(SAMPLES.bebidas.name, SAMPLES.bebidas.rows, SAMPLES.bebidas.goal);
+    }
+  </script>
+</body>
+</html>

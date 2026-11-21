@@ -1,0 +1,55 @@
+# Dependências
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build
+dist/
+build/
+*.local
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.*.local
+
+# IDE e Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+logs
+*.log
+
+# Cache
+.cache/
+.eslintcache
+.stylelintcache
+
+# Testes
+coverage/
+.nyc_output/
+
+# Temp
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Arquivos de backup
+*.bak
+*.backup
+*.old
+
+# Zip local
+PulseBI_3.0_Local_PC-v4.zip
